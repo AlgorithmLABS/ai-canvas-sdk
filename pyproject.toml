@@ -45,4 +45,4 @@ Documentation = "https://github.com/algorithmlabs/ai-canvas-sdk/README.md"
 ai-canvas-sdk = "aicanvas.cli:main"
 
 [tool.setuptools]
-packages = ["aicanvas"]
+packages = ["aicanvas", "aicanvas.grpc"]
