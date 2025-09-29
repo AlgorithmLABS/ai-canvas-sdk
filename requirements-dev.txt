@@ -1,3 +1,0 @@
-# dev
-grpcio-tools==1.75.0
-grpc-stubs==1.53.0.6

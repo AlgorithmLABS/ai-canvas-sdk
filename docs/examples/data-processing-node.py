@@ -5,12 +5,15 @@
 기본적인 데이터 정제, 집계, 통계 생성 기능을 포함합니다.
 """
 
+import logging
 from datetime import datetime, timedelta
 from typing import Any
 
 import numpy as np
 import pandas as pd
 from ai_canvas_sdk import CustomNode, NodeContext, NodeSchema, PortType
+
+logger = logging.getLogger(__name__)
 
 
 class CustomerDataProcessor(CustomNode):
