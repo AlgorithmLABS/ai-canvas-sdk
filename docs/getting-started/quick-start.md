@@ -66,13 +66,17 @@ class HelloWorldNode(CustomNode):
         greeting = parameters.get('greeting', 'Hello')
         
         # 비즈니스 로직
-        df=pd.Dataframe({
+        # 비즈니스 로직
+        # 'pd'와 'Dataset'을 import해야 합니다.
+        # 예: import pandas as pd
+        # 예: from aicanvas.types import Dataset
+        df=pd.DataFrame({
             "name":[user_name],
             "greeting":[f"{greeting} {user_name}"]
         })
         
         # 결과 반환
-        return (Dataset(dataframe=df))
+        return {"output_text": Dataset(dataframe=df)}
 
 node = HelloWorldNode()
 ```
