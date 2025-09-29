@@ -1,0 +1,48 @@
+[project]
+name = "ai-canvas-sdk"
+version = "0.0.1"
+description = "SDK for developing custom nodes in AI Canvas platform"
+requires-python = ">=3.10"
+authors = [{ name = "AlgorithmLABS", email = "contact@algorithmlabs.co.kr" }]
+dependencies = [
+    # Keep runtime minimal; heavy data libs move to extras
+    "grpcio>=1.75.0,<2.0.0",
+    "protobuf>=6.32.1,<7.0.0",
+]
+
+[project.optional-dependencies]
+# Optional: data science stack for node developers who need DataFrame/Arrow
+data = [
+    "pandas>=2.3.2,<3.0.0",
+    "pyarrow>=21.0.0,<22.0.0",
+    "numpy>=2.3.3,<3.0.0",
+]
+
+# Dev tooling for generating/stubbing protos, typing, etc.
+dev = [
+    "grpcio-tools>=1.75.0,<2.0.0",
+    "grpc-stubs>=1.53.0.6,<2.0.0",
+    "mypy-protobuf>=3.6.0,<4.0.0",
+]
+
+# Convenience: everything (data + dev)
+all = [
+    "pandas>=2.3.2,<3.0.0",
+    "pyarrow>=21.0.0,<22.0.0",
+    "numpy>=2.3.3,<3.0.0",
+    "grpcio-tools>=1.75.0,<2.0.0",
+    "grpc-stubs>=1.53.0.6,<2.0.0",
+    "mypy-protobuf>=3.6.0,<4.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/algorithmlabs/ai-canvas-sdk"
+Documentation = "https://github.com/algorithmlabs/ai-canvas-sdk/README.md"
+"Bug Reports" = "https://github.com/algorithmlabs/ai-canvas-sdk/issues"
+
+[project.scripts]
+# CLI 명령어
+ai-canvas-sdk = "aicanvas.cli:main"
+
+[tool.setuptools]
+packages = ["aicanvas"]

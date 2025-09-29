@@ -1,0 +1,9 @@
+# core
+grpcio==1.75.0
+protobuf==6.32.1
+
+# 데이터 처리
+pandas==2.3.2
+pyarrow==21.0.0
+numpy==2.3.3
+
