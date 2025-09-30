@@ -378,7 +378,7 @@ class DataTypeConverter:
 ### 1. 계층화된 예외 처리
 
 ```python
-from aicanvas_sdk.exceptions import NodeException
+from ai_canvas_sdk.exceptions import NodeException
 
 class DataValidationError(NodeException):
     """데이터 검증 오류"""

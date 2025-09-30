@@ -513,35 +513,35 @@ class ValidatedNode(CustomNode):
 
 ### 문제 해결이 어려운 경우
 
-1. **로그 파일 확인**: `~/.aicanvas/sdk.log`
-2. **샘플 데이터로 테스트**: `aicanvas-sdk test your_node.py --sample-data`
-3. **디버그 모드 실행**: `aicanvas-sdk test your_node.py --debug`
-4. **메모리 프로파일링**: `aicanvas-sdk profile your_node.py`
+1. **로그 파일 확인**: `~/.ai-canvas/sdk.log`
+2. **샘플 데이터로 테스트**: `ai-canvas-sdk test your_node.py --sample-data`
+3. **디버그 모드 실행**: `ai-canvas-sdk test your_node.py --debug`
+4. **메모리 프로파일링**: `ai-canvas-sdk profile your_node.py`
 
 ### 지원 채널
 
-- **기술 지원**: tech-support@aicanvas.com
+- **기술 지원**: tech-support@ai-canvas.io
 - **버그 리포트**: GitHub Issues
-- **기능 요청**: feature-request@aicanvas.com
+- **기능 요청**: feature-request@ai-canvas.io
 - **커뮤니티**: AI Canvas Developer Forum
 
 ### 자주 사용하는 디버깅 명령어
 
 ```bash
 # 노드 스키마 검증
-aicanvas-sdk validate my_node.py
+ai-canvas-sdk validate my_node.py
 
 # 샘플 데이터로 테스트
-aicanvas-sdk test my_node.py --sample-data --verbose
+ai-canvas-sdk test my_node.py --sample-data --verbose
 
 # 성능 프로파일링
-aicanvas-sdk profile my_node.py --iterations 10
+ai-canvas-sdk profile my_node.py --iterations 10
 
 # 메모리 사용량 모니터링
-aicanvas-sdk monitor my_node.py --memory
+ai-canvas-sdk monitor my_node.py --memory
 
 # 에러 로그 실시간 확인
-tail -f ~/.aicanvas/sdk.log
+tail -f ~/.ai-canvas/sdk.log
 ```
 
 ---

@@ -69,7 +69,7 @@ class HelloWorldNode(CustomNode):
         # 비즈니스 로직
         # 'pd'와 'Dataset'을 import해야 합니다.
         # 예: import pandas as pd
-        # 예: from aicanvas.types import Dataset
+        # 예: from ai_canvas_sdk.types import Dataset
         df=pd.DataFrame({
             "name":[user_name],
             "greeting":[f"{greeting} {user_name}"]
@@ -270,5 +270,5 @@ print(f"통계: {result['stats']}")
 ### 학습 팁
 
 - **작게 시작**: 간단한 기능부터 구현
-- **자주 테스트**: `aicanvas-sdk test` 명령을 활용
+- **자주 테스트**: `ai-canvas-sdk test` 명령을 활용
 - **로그 확인**: `~/.ai-canvas/sdk.log` 파일 모니터링

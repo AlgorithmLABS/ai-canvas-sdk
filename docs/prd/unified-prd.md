@@ -212,25 +212,25 @@ def run(self, inputs, parameters, ctx):
 #### **FR5: 포괄적인 CLI**
 ```bash
 # 프로젝트 초기화
-aicanvas-sdk init my-custom-node --template=ml-training
+ai-canvas-sdk init my-custom-node --template=ml-training
 
 # 개발 및 테스트
-aicanvas-sdk validate my_node.py
-aicanvas-sdk run my_node.py --input data.csv --params '{"threshold": 0.5}'
-aicanvas-sdk test my_node.py --sample-data
-aicanvas-sdk profile my_node.py --iterations 10
+ai-canvas-sdk validate my_node.py
+ai-canvas-sdk run my_node.py --input data.csv --params '{"threshold": 0.5}'
+ai-canvas-sdk test my_node.py --sample-data
+ai-canvas-sdk profile my_node.py --iterations 10
 
 # 배포
-aicanvas-sdk package --nodes *.py --output my_nodes.zip --version 1.0.0
-aicanvas-sdk register --package my_nodes.zip --server https://api.aicanvas.com
-aicanvas-sdk publish manifest.json
+ai-canvas-sdk package --nodes *.py --output my_nodes.zip --version 1.0.0
+ai-canvas-sdk register --package my_nodes.zip --server https://api.ai-canvas.io
+ai-canvas-sdk publish manifest.json
 ```
 
 ### 4.2 고급 기능 (Should Have)
 
 #### **FR6: 통합 테스팅 프레임워크**
 ```python
-from aicanvas_sdk.testing import NodeTester, MockContext
+from ai_canvas_sdk.testing import NodeTester, MockContext
 
 def test_data_filter_node():
     tester = NodeTester(DataFilterNode)
@@ -760,74 +760,74 @@ class RobustNode(CustomNode):
 
 ```bash
 # 프로젝트 초기화
-aicanvas-sdk init my-project
-aicanvas-sdk init my-project --template=ml-training
-aicanvas-sdk init my-project --template=data-processing
-aicanvas-sdk init my-project --template=api-integration
+ai-canvas-sdk init my-project
+ai-canvas-sdk init my-project --template=ml-training
+ai-canvas-sdk init my-project --template=data-processing
+ai-canvas-sdk init my-project --template=api-integration
 
 # 템플릿 목록
-aicanvas-sdk templates list
-aicanvas-sdk templates show ml-training
+ai-canvas-sdk templates list
+ai-canvas-sdk templates show ml-training
 ```
 
 ### 8.2 개발 및 테스트
 
 ```bash
 # 노드 검증
-aicanvas-sdk validate my_node.py
-aicanvas-sdk validate ./nodes/  # 디렉토리 전체
+ai-canvas-sdk validate my_node.py
+ai-canvas-sdk validate ./nodes/  # 디렉토리 전체
 
 # 로컬 실행
-aicanvas-sdk run my_node.py
-aicanvas-sdk run my_node.py --input data.csv
-aicanvas-sdk run my_node.py --input '{"key": "value"}'
-aicanvas-sdk run my_node.py --params '{"threshold": 0.8}'
-aicanvas-sdk run my_node.py --test  # 테스트 모드
+ai-canvas-sdk run my_node.py
+ai-canvas-sdk run my_node.py --input data.csv
+ai-canvas-sdk run my_node.py --input '{"key": "value"}'
+ai-canvas-sdk run my_node.py --params '{"threshold": 0.8}'
+ai-canvas-sdk run my_node.py --test  # 테스트 모드
 
 # 단위 테스트
-aicanvas-sdk test my_node.py
-aicanvas-sdk test my_node.py --sample-data
-aicanvas-sdk test my_node.py --coverage
+ai-canvas-sdk test my_node.py
+ai-canvas-sdk test my_node.py --sample-data
+ai-canvas-sdk test my_node.py --coverage
 
 # 성능 프로파일링
-aicanvas-sdk profile my_node.py --iterations 10
-aicanvas-sdk profile my_node.py --memory-profile
-aicanvas-sdk profile my_node.py --input large_data.csv
+ai-canvas-sdk profile my_node.py --iterations 10
+ai-canvas-sdk profile my_node.py --memory-profile
+ai-canvas-sdk profile my_node.py --input large_data.csv
 ```
 
 ### 8.3 패키징 및 배포
 
 ```bash
 # 패키징
-aicanvas-sdk package --nodes my_node.py
-aicanvas-sdk package --nodes ./nodes/ --output my_nodes.zip
-aicanvas-sdk package --nodes *.py --version 1.2.0 --author "My Team"
+ai-canvas-sdk package --nodes my_node.py
+ai-canvas-sdk package --nodes ./nodes/ --output my_nodes.zip
+ai-canvas-sdk package --nodes *.py --version 1.2.0 --author "My Team"
 
 # 등록 (개발 환경)
-aicanvas-sdk register --package my_nodes.zip
-aicanvas-sdk register --package my_nodes.zip --server https://dev.aicanvas.com
+ai-canvas-sdk register --package my_nodes.zip
+ai-canvas-sdk register --package my_nodes.zip --server https://dev.ai-canvas.io
 
 # 배포 (프로덕션)
-aicanvas-sdk publish manifest.json
-aicanvas-sdk publish manifest.json --environment production
-aicanvas-sdk publish manifest.json --approve-security-scan
+ai-canvas-sdk publish manifest.json
+ai-canvas-sdk publish manifest.json --environment production
+ai-canvas-sdk publish manifest.json --approve-security-scan
 ```
 
 ### 8.4 유틸리티
 
 ```bash
 # 버전 및 환경 정보
-aicanvas-sdk --version
-aicanvas-sdk doctor  # 환경 진단
-aicanvas-sdk test-connection  # 서버 연결 테스트
+ai-canvas-sdk --version
+ai-canvas-sdk doctor  # 환경 진단
+ai-canvas-sdk test-connection  # 서버 연결 테스트
 
 # 문서화
-aicanvas-sdk docs generate my_node.py
-aicanvas-sdk docs serve  # 로컬 문서 서버
+ai-canvas-sdk docs generate my_node.py
+ai-canvas-sdk docs serve  # 로컬 문서 서버
 
 # 로그 및 디버깅
-aicanvas-sdk logs --node-id abc123
-aicanvas-sdk logs --follow --level DEBUG
+ai-canvas-sdk logs --node-id abc123
+ai-canvas-sdk logs --follow --level DEBUG
 ```
 
 ## 9. 테스트 전략 및 수용 기준
@@ -1288,13 +1288,13 @@ stages:
 ### 15.3 배포 채널
 
 #### **SDK 배포**
-1. **PyPI**: `pip install aicanvas-sdk`
+1. **PyPI**: `pip install ai-canvas-sdk`
 2. **GitHub Releases**: 바이너리 다운로드
-3. **Docker**: `docker pull aicanvas/sdk`
-4. **Conda**: `conda install aicanvas-sdk`
+3. **Docker**: `docker pull ai-canvas/sdk`
+4. **Conda**: `conda install ai-canvas-sdk`
 
 #### **문서 배포**
-1. **공식 사이트**: https://docs.aicanvas.com/sdk
+1. **공식 사이트**: https://docs.ai-canvas.io/sdk
 2. **GitHub Pages**: 백업 및 버전별 문서
 3. **PDF**: 오프라인 문서 다운로드
 
@@ -1354,15 +1354,14 @@ stages:
 ## 📞 연락처 및 지원
 
 ### 개발팀
-- **Product Owner**: product@aicanvas.com
-- **Tech Lead**: tech-lead@aicanvas.com
-- **Backend Team**: backend@aicanvas.com
+- **Product Owner**: product@ai-canvas.io
+- **Tech Lead**: tech-lead@ai-canvas.io
+- **Backend Team**: backend@ai-canvas.io
 
 ### 지원 채널
-- **기술 지원**: tech-support@aicanvas.com
-- **문서 피드백**: docs@aicanvas.com
-- **커뮤니티**: [Discord](https://discord.gg/aicanvas)
-- **GitHub Issues**: [AI Canvas SDK Repository](https://github.com/aicanvas/custom-node-sdk)
+- **기술 지원**: tech-support@ai-canvas.io
+- **문서 피드백**: docs@ai-canvas.io
+- **GitHub Issues**: [AI Canvas SDK Repository](https://github.com/AlgorithmLABS/ai-canvas-sdk/issues)
 
 ---
 
