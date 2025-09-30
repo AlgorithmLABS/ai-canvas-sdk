@@ -20,7 +20,7 @@ def fix_imports(output_dir: Path):
 def compile_protos():
     root_dir = Path(__file__).parent.parent
     proto_dir = root_dir / "proto"
-    output_dir = root_dir / "aicanvas" / "grpc"
+    output_dir = root_dir / "ai_canvas_sdk" / "grpc"
 
     # proto 디렉토리 확인
     if not proto_dir.exists():

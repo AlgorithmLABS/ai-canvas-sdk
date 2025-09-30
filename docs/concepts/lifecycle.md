@@ -38,7 +38,7 @@ class NodeDiscovery:
         return node_classes
 
 # 실제 노드 파일에서는 간단히
-from aicanvas_sdk import CustomNode
+from ai_canvas_sdk import CustomNode
 
 class MyNode(CustomNode):  # SDK가 자동 발견
     pass
