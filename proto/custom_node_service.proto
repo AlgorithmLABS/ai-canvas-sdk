@@ -372,6 +372,11 @@ message NodeDefinition {
   NodeData data=8;
   // 메타데이터
   NodeMetadata metadata = 9;
+
+  // 동적 노드 등록을 위한 소스 코드 (커스텀 노드용)
+  string source_code = 10;          // Python 소스 코드
+  string entry_class = 11;          // CustomNode 클래스 이름 (예: "HelloWorldNode")
+  repeated string dependencies = 12; // 추가 pip 패키지 의존성 (예: ["pandas==2.0.0"])
 }
 
 
