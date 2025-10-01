@@ -331,12 +331,11 @@ enum ErrorCode {
 // =============================================================================
 
 message PortSchema {
-  string id = 1;
-  string type = 2;
-  string position = 3;
+  string type = 1;
+  string position = 2;
+  PortType port_type = 3;
   string label = 4;
-  PortType port_type = 5;
-  bool required = 6;                        // 필수 여부
+  bool required = 5;                        // 필수 여부
 }
 
 message ParameterSchema {
@@ -354,9 +353,6 @@ message NodeData {
   repeated PortSchema input_ports = 1;
   repeated PortSchema output_ports = 2;
   repeated ParameterSchema params = 3;
-  reserved 4,5; // flows, style 을 위애 예약
-  reserved "flows","style"; 
-  // flows 와 style 은 일단 제외
 }
 
 message NodeDefinition {

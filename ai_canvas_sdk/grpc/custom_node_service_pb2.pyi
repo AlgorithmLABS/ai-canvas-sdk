@@ -475,20 +475,18 @@ class ExecutionError(_message.Message):
     def __init__(self, error_code: _Optional[_Union[ErrorCode, str]] = ..., error_message: _Optional[str] = ..., user_message: _Optional[str] = ..., exception: _Optional[_Union[ExceptionInfo, _Mapping]] = ..., error_context: _Optional[_Mapping[str, str]] = ..., recovery_suggestion: _Optional[str] = ...) -> None: ...
 
 class PortSchema(_message.Message):
-    __slots__ = ("id", "type", "position", "label", "port_type", "required")
-    ID_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("type", "position", "port_type", "label", "required")
     TYPE_FIELD_NUMBER: _ClassVar[int]
     POSITION_FIELD_NUMBER: _ClassVar[int]
-    LABEL_FIELD_NUMBER: _ClassVar[int]
     PORT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    LABEL_FIELD_NUMBER: _ClassVar[int]
     REQUIRED_FIELD_NUMBER: _ClassVar[int]
-    id: str
     type: str
     position: str
-    label: str
     port_type: PortType
+    label: str
     required: bool
-    def __init__(self, id: _Optional[str] = ..., type: _Optional[str] = ..., position: _Optional[str] = ..., label: _Optional[str] = ..., port_type: _Optional[_Union[PortType, str]] = ..., required: bool = ...) -> None: ...
+    def __init__(self, type: _Optional[str] = ..., position: _Optional[str] = ..., port_type: _Optional[_Union[PortType, str]] = ..., label: _Optional[str] = ..., required: bool = ...) -> None: ...
 
 class ParameterSchema(_message.Message):
     __slots__ = ("text", "name", "form_type", "value", "value_type", "mode", "options", "is_tab")

@@ -8,6 +8,8 @@ dependencies = [
     # Keep runtime minimal; heavy data libs move to extras
     "grpcio>=1.75.0,<2.0.0",
     "protobuf>=6.32.1,<7.0.0",
+    "pandas>=2.3.2,<3.0.0",
+
 ]
 
 [project.optional-dependencies]
