@@ -521,7 +521,7 @@ class NodeData(_message.Message):
     def __init__(self, input_ports: _Optional[_Iterable[_Union[PortSchema, _Mapping]]] = ..., output_ports: _Optional[_Iterable[_Union[PortSchema, _Mapping]]] = ..., params: _Optional[_Iterable[_Union[ParameterSchema, _Mapping]]] = ...) -> None: ...
 
 class NodeDefinition(_message.Message):
-    __slots__ = ("node_id", "name", "display_name", "description", "version", "category", "tags", "data", "metadata")
+    __slots__ = ("node_id", "name", "display_name", "description", "version", "category", "tags", "data", "metadata", "source_code", "entry_class", "dependencies")
     NODE_ID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     DISPLAY_NAME_FIELD_NUMBER: _ClassVar[int]
@@ -531,6 +531,9 @@ class NodeDefinition(_message.Message):
     TAGS_FIELD_NUMBER: _ClassVar[int]
     DATA_FIELD_NUMBER: _ClassVar[int]
     METADATA_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_CODE_FIELD_NUMBER: _ClassVar[int]
+    ENTRY_CLASS_FIELD_NUMBER: _ClassVar[int]
+    DEPENDENCIES_FIELD_NUMBER: _ClassVar[int]
     node_id: str
     name: str
     display_name: str
@@ -540,7 +543,10 @@ class NodeDefinition(_message.Message):
     tags: _containers.RepeatedScalarFieldContainer[str]
     data: NodeData
     metadata: NodeMetadata
-    def __init__(self, node_id: _Optional[str] = ..., name: _Optional[str] = ..., display_name: _Optional[str] = ..., description: _Optional[str] = ..., version: _Optional[str] = ..., category: _Optional[str] = ..., tags: _Optional[_Iterable[str]] = ..., data: _Optional[_Union[NodeData, _Mapping]] = ..., metadata: _Optional[_Union[NodeMetadata, _Mapping]] = ...) -> None: ...
+    source_code: str
+    entry_class: str
+    dependencies: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, node_id: _Optional[str] = ..., name: _Optional[str] = ..., display_name: _Optional[str] = ..., description: _Optional[str] = ..., version: _Optional[str] = ..., category: _Optional[str] = ..., tags: _Optional[_Iterable[str]] = ..., data: _Optional[_Union[NodeData, _Mapping]] = ..., metadata: _Optional[_Union[NodeMetadata, _Mapping]] = ..., source_code: _Optional[str] = ..., entry_class: _Optional[str] = ..., dependencies: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class DataSchema(_message.Message):
     __slots__ = ("schema_type", "columns", "properties")
