@@ -357,22 +357,20 @@ message NodeData {
 
 message NodeDefinition {
   // 기본 정보
-  string node_id = 1;
-  string name = 2;
-  string display_name = 3;
-  string description = 4;
-  string version = 5;
-  string category = 6;
-  repeated string tags = 7;
+  string name = 1;
+  NodeData data=2;
+  string category = 3;
+  int32 width = 4;
+  int32 height = 5;
+  string version = 6;
 
-  NodeData data=8;
   // 메타데이터
-  NodeMetadata metadata = 9;
+  NodeMetadata metadata = 7;
 
   // 동적 노드 등록을 위한 소스 코드 (커스텀 노드용)
-  string source_code = 10;          // Python 소스 코드
-  string entry_class = 11;          // CustomNode 클래스 이름 (예: "HelloWorldNode")
-  repeated string dependencies = 12; // 추가 pip 패키지 의존성 (예: ["pandas==2.0.0"])
+  string source_code = 8;          // Python 소스 코드
+  string entry_class = 9;          // CustomNode 클래스 이름 (예: "HelloWorldNode")
+  repeated string dependencies = 10; // 추가 pip 패키지 의존성 (예: ["pandas==2.0.0"])
 }
 
 
@@ -447,10 +445,9 @@ message NodeMetadata {
   string license = 2;                     // 라이선스
   string documentation_url = 3;           // 문서 URL
   string source_code_url = 4;             // 소스코드 URL
-  repeated string dependencies = 5;       // 의존성 목록
-  map<string, string> custom_metadata = 6;// 커스텀 메타데이터
-  google.protobuf.Timestamp created_at = 7; // 생성 시간
-  google.protobuf.Timestamp updated_at = 8; // 수정 시간
+  map<string, string> custom_metadata = 5;// 커스텀 메타데이터
+  google.protobuf.Timestamp created_at = 6; // 생성 시간
+  google.protobuf.Timestamp updated_at = 7; // 수정 시간
 }
 
 // =============================================================================
@@ -460,7 +457,7 @@ message NodeMetadata {
 message RegistrationResult {
   bool success = 1;                               // 성공 여부
   string message = 2;                             // 메시지
-  string node_id = 3;                             // 등록된 노드 ID
+  string node_name = 3;                             // 등록된 노드 이름
   repeated ValidationError validation_errors = 4; // 유효성 검사 오류 목록
 }
 
@@ -506,9 +503,8 @@ message StatusRequest {
 
 message ListNodesRequest {
   string category = 1;        // 카테고리 필터
-  repeated string tags = 2;   // 태그 필터
-  int32 page = 3;             // 페이지 번호
-  int32 page_size = 4;        // 페이지 사이즈
+  int32 page = 2;             // 페이지 번호
+  int32 page_size = 3;        // 페이지 사이즈
 }
 
 message ListNodesResponse {
