@@ -47,4 +47,4 @@ Documentation = "https://github.com/algorithmlabs/ai-canvas-sdk/README.md"
 ai-canvas-sdk = "ai_canvas_sdk.cli:main"
 
 [tool.setuptools]
-packages = ["ai_canvas_sdk", "ai_canvas_sdk.grpc"]
+packages = ["ai_canvas_sdk", "ai_canvas_sdk.grpc", "ai_canvas_sdk.custom_node"]
