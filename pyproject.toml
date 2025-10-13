@@ -46,5 +46,7 @@ Documentation = "https://github.com/algorithmlabs/ai-canvas-sdk/README.md"
 # CLI 명령어
 ai-canvas-sdk = "ai_canvas_sdk.cli:main"
 
-[tool.setuptools]
-packages = ["ai_canvas_sdk", "ai_canvas_sdk.grpc", "ai_canvas_sdk.custom_node"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["*"]
+exclude = ["tests*"]
