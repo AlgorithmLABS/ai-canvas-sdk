@@ -488,6 +488,7 @@ class PortSchema(_message.Message):
     required: bool
     def __init__(self, type: _Optional[str] = ..., position: _Optional[str] = ..., port_type: _Optional[_Union[PortType, str]] = ..., label: _Optional[str] = ..., required: bool = ...) -> None: ...
 
+
 class ParameterSchema(_message.Message):
     __slots__ = ("text", "name", "form_type", "value", "value_type", "mode", "options", "is_tab")
     TEXT_FIELD_NUMBER: _ClassVar[int]
@@ -541,6 +542,7 @@ class NodeDefinition(_message.Message):
     entry_class: str
     dependencies: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, name: _Optional[str] = ..., data: _Optional[_Union[NodeData, _Mapping]] = ..., category: _Optional[str] = ..., width: _Optional[int] = ..., height: _Optional[int] = ..., version: _Optional[str] = ..., metadata: _Optional[_Union[NodeMetadata, _Mapping]] = ..., source_code: _Optional[str] = ..., entry_class: _Optional[str] = ..., dependencies: _Optional[_Iterable[str]] = ...) -> None: ...
+
 
 class DataSchema(_message.Message):
     __slots__ = ("schema_type", "columns", "properties")
@@ -638,6 +640,7 @@ class RegistrationResult(_message.Message):
     validation_errors: _containers.RepeatedCompositeFieldContainer[ValidationError]
     def __init__(self, success: bool = ..., message: _Optional[str] = ..., node_name: _Optional[str] = ..., validation_errors: _Optional[_Iterable[_Union[ValidationError, _Mapping]]] = ...) -> None: ...
 
+
 class ValidationError(_message.Message):
     __slots__ = ("field", "error_code", "error_message")
     FIELD_FIELD_NUMBER: _ClassVar[int]
@@ -708,6 +711,7 @@ class ListNodesRequest(_message.Message):
     page: int
     page_size: int
     def __init__(self, category: _Optional[str] = ..., page: _Optional[int] = ..., page_size: _Optional[int] = ...) -> None: ...
+
 
 class ListNodesResponse(_message.Message):
     __slots__ = ("nodes", "total_count", "page", "page_size")
