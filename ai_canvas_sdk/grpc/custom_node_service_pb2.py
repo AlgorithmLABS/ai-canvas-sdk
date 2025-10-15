@@ -159,5 +159,4 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_LISTNODESRESPONSE']._serialized_end=7516
   _globals['_CUSTOMNODEEXECUTOR']._serialized_start=9319
   _globals['_CUSTOMNODEEXECUTOR']._serialized_end=10019
-
 # @@protoc_insertion_point(module_scope)
