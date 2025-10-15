@@ -475,20 +475,19 @@ class ExecutionError(_message.Message):
     def __init__(self, error_code: _Optional[_Union[ErrorCode, str]] = ..., error_message: _Optional[str] = ..., user_message: _Optional[str] = ..., exception: _Optional[_Union[ExceptionInfo, _Mapping]] = ..., error_context: _Optional[_Mapping[str, str]] = ..., recovery_suggestion: _Optional[str] = ...) -> None: ...
 
 class PortSchema(_message.Message):
-    __slots__ = ("id", "type", "position", "label", "port_type", "required")
-    ID_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("type", "position", "port_type", "label", "required")
     TYPE_FIELD_NUMBER: _ClassVar[int]
     POSITION_FIELD_NUMBER: _ClassVar[int]
-    LABEL_FIELD_NUMBER: _ClassVar[int]
     PORT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    LABEL_FIELD_NUMBER: _ClassVar[int]
     REQUIRED_FIELD_NUMBER: _ClassVar[int]
-    id: str
     type: str
     position: str
-    label: str
     port_type: PortType
+    label: str
     required: bool
-    def __init__(self, id: _Optional[str] = ..., type: _Optional[str] = ..., position: _Optional[str] = ..., label: _Optional[str] = ..., port_type: _Optional[_Union[PortType, str]] = ..., required: bool = ...) -> None: ...
+    def __init__(self, type: _Optional[str] = ..., position: _Optional[str] = ..., port_type: _Optional[_Union[PortType, str]] = ..., label: _Optional[str] = ..., required: bool = ...) -> None: ...
+
 
 class ParameterSchema(_message.Message):
     __slots__ = ("text", "name", "form_type", "value", "value_type", "mode", "options", "is_tab")
@@ -521,26 +520,29 @@ class NodeData(_message.Message):
     def __init__(self, input_ports: _Optional[_Iterable[_Union[PortSchema, _Mapping]]] = ..., output_ports: _Optional[_Iterable[_Union[PortSchema, _Mapping]]] = ..., params: _Optional[_Iterable[_Union[ParameterSchema, _Mapping]]] = ...) -> None: ...
 
 class NodeDefinition(_message.Message):
-    __slots__ = ("node_id", "name", "display_name", "description", "version", "category", "tags", "data", "metadata")
-    NODE_ID_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("name", "data", "category", "width", "height", "version", "metadata", "source_code", "entry_class", "dependencies")
     NAME_FIELD_NUMBER: _ClassVar[int]
-    DISPLAY_NAME_FIELD_NUMBER: _ClassVar[int]
-    DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
-    VERSION_FIELD_NUMBER: _ClassVar[int]
-    CATEGORY_FIELD_NUMBER: _ClassVar[int]
-    TAGS_FIELD_NUMBER: _ClassVar[int]
     DATA_FIELD_NUMBER: _ClassVar[int]
+    CATEGORY_FIELD_NUMBER: _ClassVar[int]
+    WIDTH_FIELD_NUMBER: _ClassVar[int]
+    HEIGHT_FIELD_NUMBER: _ClassVar[int]
+    VERSION_FIELD_NUMBER: _ClassVar[int]
     METADATA_FIELD_NUMBER: _ClassVar[int]
-    node_id: str
+    SOURCE_CODE_FIELD_NUMBER: _ClassVar[int]
+    ENTRY_CLASS_FIELD_NUMBER: _ClassVar[int]
+    DEPENDENCIES_FIELD_NUMBER: _ClassVar[int]
     name: str
-    display_name: str
-    description: str
-    version: str
-    category: str
-    tags: _containers.RepeatedScalarFieldContainer[str]
     data: NodeData
+    category: str
+    width: int
+    height: int
+    version: str
     metadata: NodeMetadata
-    def __init__(self, node_id: _Optional[str] = ..., name: _Optional[str] = ..., display_name: _Optional[str] = ..., description: _Optional[str] = ..., version: _Optional[str] = ..., category: _Optional[str] = ..., tags: _Optional[_Iterable[str]] = ..., data: _Optional[_Union[NodeData, _Mapping]] = ..., metadata: _Optional[_Union[NodeMetadata, _Mapping]] = ...) -> None: ...
+    source_code: str
+    entry_class: str
+    dependencies: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, name: _Optional[str] = ..., data: _Optional[_Union[NodeData, _Mapping]] = ..., category: _Optional[str] = ..., width: _Optional[int] = ..., height: _Optional[int] = ..., version: _Optional[str] = ..., metadata: _Optional[_Union[NodeMetadata, _Mapping]] = ..., source_code: _Optional[str] = ..., entry_class: _Optional[str] = ..., dependencies: _Optional[_Iterable[str]] = ...) -> None: ...
+
 
 class DataSchema(_message.Message):
     __slots__ = ("schema_type", "columns", "properties")
@@ -602,7 +604,7 @@ class PartialResult(_message.Message):
     def __init__(self, result_id: _Optional[str] = ..., result_type: _Optional[str] = ..., result_data: _Optional[_Union[_any_pb2.Any, _Mapping]] = ..., completion_percentage: _Optional[float] = ..., timestamp: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class NodeMetadata(_message.Message):
-    __slots__ = ("author", "license", "documentation_url", "source_code_url", "dependencies", "custom_metadata", "created_at", "updated_at")
+    __slots__ = ("author", "license", "documentation_url", "source_code_url", "custom_metadata", "created_at", "updated_at")
     class CustomMetadataEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -614,7 +616,6 @@ class NodeMetadata(_message.Message):
     LICENSE_FIELD_NUMBER: _ClassVar[int]
     DOCUMENTATION_URL_FIELD_NUMBER: _ClassVar[int]
     SOURCE_CODE_URL_FIELD_NUMBER: _ClassVar[int]
-    DEPENDENCIES_FIELD_NUMBER: _ClassVar[int]
     CUSTOM_METADATA_FIELD_NUMBER: _ClassVar[int]
     CREATED_AT_FIELD_NUMBER: _ClassVar[int]
     UPDATED_AT_FIELD_NUMBER: _ClassVar[int]
@@ -622,23 +623,23 @@ class NodeMetadata(_message.Message):
     license: str
     documentation_url: str
     source_code_url: str
-    dependencies: _containers.RepeatedScalarFieldContainer[str]
     custom_metadata: _containers.ScalarMap[str, str]
     created_at: _timestamp_pb2.Timestamp
     updated_at: _timestamp_pb2.Timestamp
-    def __init__(self, author: _Optional[str] = ..., license: _Optional[str] = ..., documentation_url: _Optional[str] = ..., source_code_url: _Optional[str] = ..., dependencies: _Optional[_Iterable[str]] = ..., custom_metadata: _Optional[_Mapping[str, str]] = ..., created_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., updated_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
+    def __init__(self, author: _Optional[str] = ..., license: _Optional[str] = ..., documentation_url: _Optional[str] = ..., source_code_url: _Optional[str] = ..., custom_metadata: _Optional[_Mapping[str, str]] = ..., created_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ..., updated_at: _Optional[_Union[datetime.datetime, _timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class RegistrationResult(_message.Message):
-    __slots__ = ("success", "message", "node_id", "validation_errors")
+    __slots__ = ("success", "message", "node_name", "validation_errors")
     SUCCESS_FIELD_NUMBER: _ClassVar[int]
     MESSAGE_FIELD_NUMBER: _ClassVar[int]
-    NODE_ID_FIELD_NUMBER: _ClassVar[int]
+    NODE_NAME_FIELD_NUMBER: _ClassVar[int]
     VALIDATION_ERRORS_FIELD_NUMBER: _ClassVar[int]
     success: bool
     message: str
-    node_id: str
+    node_name: str
     validation_errors: _containers.RepeatedCompositeFieldContainer[ValidationError]
-    def __init__(self, success: bool = ..., message: _Optional[str] = ..., node_id: _Optional[str] = ..., validation_errors: _Optional[_Iterable[_Union[ValidationError, _Mapping]]] = ...) -> None: ...
+    def __init__(self, success: bool = ..., message: _Optional[str] = ..., node_name: _Optional[str] = ..., validation_errors: _Optional[_Iterable[_Union[ValidationError, _Mapping]]] = ...) -> None: ...
+
 
 class ValidationError(_message.Message):
     __slots__ = ("field", "error_code", "error_message")
@@ -702,16 +703,15 @@ class StatusRequest(_message.Message):
     def __init__(self, execution_id: _Optional[str] = ..., include_metrics: bool = ..., include_logs: bool = ...) -> None: ...
 
 class ListNodesRequest(_message.Message):
-    __slots__ = ("category", "tags", "page", "page_size")
+    __slots__ = ("category", "page", "page_size")
     CATEGORY_FIELD_NUMBER: _ClassVar[int]
-    TAGS_FIELD_NUMBER: _ClassVar[int]
     PAGE_FIELD_NUMBER: _ClassVar[int]
     PAGE_SIZE_FIELD_NUMBER: _ClassVar[int]
     category: str
-    tags: _containers.RepeatedScalarFieldContainer[str]
     page: int
     page_size: int
-    def __init__(self, category: _Optional[str] = ..., tags: _Optional[_Iterable[str]] = ..., page: _Optional[int] = ..., page_size: _Optional[int] = ...) -> None: ...
+    def __init__(self, category: _Optional[str] = ..., page: _Optional[int] = ..., page_size: _Optional[int] = ...) -> None: ...
+
 
 class ListNodesResponse(_message.Message):
     __slots__ = ("nodes", "total_count", "page", "page_size")

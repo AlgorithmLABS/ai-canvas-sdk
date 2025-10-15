@@ -8,15 +8,13 @@ dependencies = [
     # Keep runtime minimal; heavy data libs move to extras
     "grpcio>=1.75.0,<2.0.0",
     "protobuf>=6.32.1,<7.0.0",
-]
-
-[project.optional-dependencies]
-# Optional: data science stack for node developers who need DataFrame/Arrow
-data = [
-    "pandas>=2.3.2,<3.0.0",
+    "pandas==1.4.3",
     "pyarrow>=21.0.0,<22.0.0",
     "numpy>=2.3.3,<3.0.0",
 ]
+
+[project.optional-dependencies]
+
 
 # Dev tooling for generating/stubbing protos, typing, etc.
 dev = [
@@ -27,7 +25,7 @@ dev = [
 
 # Convenience: everything (data + dev)
 all = [
-    "pandas>=2.3.2,<3.0.0",
+    "pandas==1.4.3",
     "pyarrow>=21.0.0,<22.0.0",
     "numpy>=2.3.3,<3.0.0",
     "grpcio-tools>=1.75.0,<2.0.0",
@@ -44,5 +42,8 @@ Documentation = "https://github.com/algorithmlabs/ai-canvas-sdk/README.md"
 # CLI 명령어
 ai-canvas-sdk = "ai_canvas_sdk.cli:main"
 
-[tool.setuptools]
-packages = ["ai_canvas_sdk", "ai_canvas_sdk.grpc"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["*"]
+exclude = ["tests*"]
+
