@@ -9,6 +9,7 @@ import pyarrow as pa
 
 from ai_canvas_sdk.grpc import custom_node_service_pb2 as pb
 from google.protobuf import struct_pb2, any_pb2
+from google.protobuf.json_format import MessageToDict
 
 logger = logging.getLogger(__name__)
 
@@ -190,7 +191,7 @@ class DataSerializer:
         port_data.json_data.Unpack(json_struct)
 
         # Struct를 Python dict로 변환
-        json_dict = dict(json_struct)
+        json_dict = MessageToDict(json_struct)
 
         data_dict = json_dict.get("data", [])
         df = pd.DataFrame(data_dict)
@@ -333,7 +334,7 @@ class DataSerializer:
             try:
                 json_struct = struct_pb2.Struct()
                 port_data.json_data.Unpack(json_struct)
-                return dict(json_struct)
+                return MessageToDict(json_struct)
             except Exception as e:
                 logger.warning(f"Failed to unpack json_data: {e}")
                 return None
