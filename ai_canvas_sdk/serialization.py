@@ -8,6 +8,7 @@ import pandas as pd
 import pyarrow as pa
 
 from ai_canvas_sdk.grpc import custom_node_service_pb2 as pb
+from google.protobuf import struct_pb2, any_pb2
 
 logger = logging.getLogger(__name__)
 
@@ -97,15 +98,23 @@ class DataSerializer:
         # dtype 정보 저장 (역직렬화 시 타입 복원용)
         dtypes = {col: str(dtype) for col, dtype in df.dtypes.items()}
 
+        # google.protobuf.Struct로 JSON 데이터 구성
+        json_struct = struct_pb2.Struct()
+        json_struct.update({
+            "data": data_dict,
+            "columns": df.columns.tolist(),
+            "dtypes": dtypes,
+        })
+
+        # Any 타입에 Pack
+        json_any = any_pb2.Any()
+        json_any.Pack(json_struct)
+
         return pb.PortData(
             port_id=port_id,
             port_name=port_name,
             port_type=pb.PORT_TYPE_DATASET,
-            json_data={
-                "data": data_dict,
-                "columns": df.columns.tolist(),
-                "dtypes": dtypes,
-            },
+            json_data=json_any,
             metadata={
                 "format": "json",
                 "rows": str(len(df)),
@@ -176,11 +185,18 @@ class DataSerializer:
         """
         logger.debug("Deserializing from JSON")
 
-        data_dict = port_data.json_data.get("data", [])
+        # Any 타입에서 Struct로 Unpack
+        json_struct = struct_pb2.Struct()
+        port_data.json_data.Unpack(json_struct)
+
+        # Struct를 Python dict로 변환
+        json_dict = dict(json_struct)
+
+        data_dict = json_dict.get("data", [])
         df = pd.DataFrame(data_dict)
 
         # dtype 복원 시도 (선택적)
-        dtypes = port_data.json_data.get("dtypes", {})
+        dtypes = json_dict.get("dtypes", {})
         if dtypes:
             try:
                 for col, dtype_str in dtypes.items():
@@ -229,12 +245,18 @@ class DataSerializer:
         if isinstance(value, pd.DataFrame):
             return self.serialize(value, port_id, port_name)
         elif isinstance(value, dict):
-            # dict → JSON
+            # dict → JSON (Struct로 감싸서 Any에 Pack)
+            json_struct = struct_pb2.Struct()
+            json_struct.update(value)
+
+            json_any = any_pb2.Any()
+            json_any.Pack(json_struct)
+
             return pb.PortData(
                 port_id=port_id,
                 port_name=port_name,
                 port_type=pb.PORT_TYPE_JSON,
-                json_data=value,
+                json_data=json_any,
                 metadata={"format": "json"},
             )
         elif isinstance(value, str):
@@ -267,11 +289,18 @@ class DataSerializer:
         else:
             # 기타 타입 → JSON으로 변환 시도
             logger.warning(f"Unknown type {type(value)}, converting to dict")
+
+            json_struct = struct_pb2.Struct()
+            json_struct.update({"value": str(value)})
+
+            json_any = any_pb2.Any()
+            json_any.Pack(json_struct)
+
             return pb.PortData(
                 port_id=port_id,
                 port_name=port_name,
                 port_type=pb.PORT_TYPE_JSON,
-                json_data={"value": str(value)},
+                json_data=json_any,
                 metadata={"format": "json"},
             )
 
@@ -300,8 +329,14 @@ class DataSerializer:
             # bool
             return port_data.boolean_data
         elif port_data.WhichOneof("data") == "json_data":
-            # dict
-            return port_data.json_data
+            # dict - Any에서 Struct로 Unpack
+            try:
+                json_struct = struct_pb2.Struct()
+                port_data.json_data.Unpack(json_struct)
+                return dict(json_struct)
+            except Exception as e:
+                logger.warning(f"Failed to unpack json_data: {e}")
+                return None
         else:
             logger.warning(f"Unknown port data type: {port_data.port_type}, format: {format_type}")
             return None
