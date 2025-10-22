@@ -720,3 +720,23 @@ class ListNodesResponse(_message.Message):
     page: int
     page_size: int
     def __init__(self, nodes: _Optional[_Iterable[_Union[NodeDefinition, _Mapping]]] = ..., total_count: _Optional[int] = ..., page: _Optional[int] = ..., page_size: _Optional[int] = ...) -> None: ...
+
+class DeleteNodeRequest(_message.Message):
+    __slots__ = ("node_name", "version", "force")
+    NODE_NAME_FIELD_NUMBER: _ClassVar[int]
+    VERSION_FIELD_NUMBER: _ClassVar[int]
+    FORCE_FIELD_NUMBER: _ClassVar[int]
+    node_name: str
+    version: str
+    force: bool
+    def __init__(self, node_name: _Optional[str] = ..., version: _Optional[str] = ..., force: bool = ...) -> None: ...
+
+class DeleteNodeResponse(_message.Message):
+    __slots__ = ("success", "message", "deleted_versions")
+    SUCCESS_FIELD_NUMBER: _ClassVar[int]
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    DELETED_VERSIONS_FIELD_NUMBER: _ClassVar[int]
+    success: bool
+    message: str
+    deleted_versions: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, success: bool = ..., message: _Optional[str] = ..., deleted_versions: _Optional[_Iterable[str]] = ...) -> None: ...

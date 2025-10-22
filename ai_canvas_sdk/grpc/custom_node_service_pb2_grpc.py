@@ -73,6 +73,11 @@ class CustomNodeExecutorStub(object):
                 request_serializer=custom__node__service__pb2.ListNodesRequest.SerializeToString,
                 response_deserializer=custom__node__service__pb2.ListNodesResponse.FromString,
                 _registered_method=True)
+        self.DeleteNode = channel.unary_unary(
+                '/aicanvas.customnode.v1.CustomNodeExecutor/DeleteNode',
+                request_serializer=custom__node__service__pb2.DeleteNodeRequest.SerializeToString,
+                response_deserializer=custom__node__service__pb2.DeleteNodeResponse.FromString,
+                _registered_method=True)
 
 
 class CustomNodeExecutorServicer(object):
@@ -131,6 +136,13 @@ class CustomNodeExecutorServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def DeleteNode(self, request, context):
+        """커스텀 노드 삭제
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_CustomNodeExecutorServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -168,6 +180,11 @@ def add_CustomNodeExecutorServicer_to_server(servicer, server):
                     servicer.ListNodes,
                     request_deserializer=custom__node__service__pb2.ListNodesRequest.FromString,
                     response_serializer=custom__node__service__pb2.ListNodesResponse.SerializeToString,
+            ),
+            'DeleteNode': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteNode,
+                    request_deserializer=custom__node__service__pb2.DeleteNodeRequest.FromString,
+                    response_serializer=custom__node__service__pb2.DeleteNodeResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -363,6 +380,33 @@ class CustomNodeExecutor(object):
             '/aicanvas.customnode.v1.CustomNodeExecutor/ListNodes',
             custom__node__service__pb2.ListNodesRequest.SerializeToString,
             custom__node__service__pb2.ListNodesResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteNode(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/aicanvas.customnode.v1.CustomNodeExecutor/DeleteNode',
+            custom__node__service__pb2.DeleteNodeRequest.SerializeToString,
+            custom__node__service__pb2.DeleteNodeResponse.FromString,
             options,
             channel_credentials,
             insecure,
