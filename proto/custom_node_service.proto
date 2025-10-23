@@ -38,6 +38,9 @@ service CustomNodeExecutor {
 
   // 커스텀 노드 삭제
   rpc DeleteNode(DeleteNodeRequest) returns (DeleteNodeResponse);
+
+  // 스키마 추출 및 검증 (보안: Backend에서 코드 실행 방지)
+  rpc ValidateAndExtractSchema(SchemaExtractionRequest) returns (SchemaExtractionResponse);
 }
 
 // =============================================================================
@@ -527,4 +530,22 @@ message DeleteNodeResponse {
   bool success = 1;                  // 성공 여부
   string message = 2;                // 메시지
   repeated string deleted_versions = 3; // 삭제된 버전 목록
+}
+
+// =============================================================================
+// 스키마 추출 및 검증 메시지
+// =============================================================================
+
+message SchemaExtractionRequest {
+  string source_code = 1;            // Python 소스 코드
+  string entry_class = 2;            // CustomNode 클래스 이름
+  repeated string dependencies = 3;  // pip 패키지 의존성
+  string version = 4;                // 버전 (선택, 기본값: "temp")
+}
+
+message SchemaExtractionResponse {
+  bool success = 1;                              // 성공 여부
+  NodeDefinition schema = 2;                     // 추출된 스키마
+  repeated ValidationError validation_errors = 3; // 유효성 검사 오류 목록
+  string message = 4;                            // 메시지
 }
