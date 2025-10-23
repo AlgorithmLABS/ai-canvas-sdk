@@ -78,6 +78,11 @@ class CustomNodeExecutorStub(object):
                 request_serializer=custom__node__service__pb2.DeleteNodeRequest.SerializeToString,
                 response_deserializer=custom__node__service__pb2.DeleteNodeResponse.FromString,
                 _registered_method=True)
+        self.ValidateAndExtractSchema = channel.unary_unary(
+                '/aicanvas.customnode.v1.CustomNodeExecutor/ValidateAndExtractSchema',
+                request_serializer=custom__node__service__pb2.SchemaExtractionRequest.SerializeToString,
+                response_deserializer=custom__node__service__pb2.SchemaExtractionResponse.FromString,
+                _registered_method=True)
 
 
 class CustomNodeExecutorServicer(object):
@@ -143,6 +148,13 @@ class CustomNodeExecutorServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ValidateAndExtractSchema(self, request, context):
+        """스키마 추출 및 검증 (보안: Backend에서 코드 실행 방지)
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_CustomNodeExecutorServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -185,6 +197,11 @@ def add_CustomNodeExecutorServicer_to_server(servicer, server):
                     servicer.DeleteNode,
                     request_deserializer=custom__node__service__pb2.DeleteNodeRequest.FromString,
                     response_serializer=custom__node__service__pb2.DeleteNodeResponse.SerializeToString,
+            ),
+            'ValidateAndExtractSchema': grpc.unary_unary_rpc_method_handler(
+                    servicer.ValidateAndExtractSchema,
+                    request_deserializer=custom__node__service__pb2.SchemaExtractionRequest.FromString,
+                    response_serializer=custom__node__service__pb2.SchemaExtractionResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -407,6 +424,33 @@ class CustomNodeExecutor(object):
             '/aicanvas.customnode.v1.CustomNodeExecutor/DeleteNode',
             custom__node__service__pb2.DeleteNodeRequest.SerializeToString,
             custom__node__service__pb2.DeleteNodeResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ValidateAndExtractSchema(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/aicanvas.customnode.v1.CustomNodeExecutor/ValidateAndExtractSchema',
+            custom__node__service__pb2.SchemaExtractionRequest.SerializeToString,
+            custom__node__service__pb2.SchemaExtractionResponse.FromString,
             options,
             channel_credentials,
             insecure,

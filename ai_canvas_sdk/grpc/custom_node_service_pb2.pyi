@@ -740,3 +740,27 @@ class DeleteNodeResponse(_message.Message):
     message: str
     deleted_versions: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, success: bool = ..., message: _Optional[str] = ..., deleted_versions: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class SchemaExtractionRequest(_message.Message):
+    __slots__ = ("source_code", "entry_class", "dependencies", "version")
+    SOURCE_CODE_FIELD_NUMBER: _ClassVar[int]
+    ENTRY_CLASS_FIELD_NUMBER: _ClassVar[int]
+    DEPENDENCIES_FIELD_NUMBER: _ClassVar[int]
+    VERSION_FIELD_NUMBER: _ClassVar[int]
+    source_code: str
+    entry_class: str
+    dependencies: _containers.RepeatedScalarFieldContainer[str]
+    version: str
+    def __init__(self, source_code: _Optional[str] = ..., entry_class: _Optional[str] = ..., dependencies: _Optional[_Iterable[str]] = ..., version: _Optional[str] = ...) -> None: ...
+
+class SchemaExtractionResponse(_message.Message):
+    __slots__ = ("success", "schema", "validation_errors", "message")
+    SUCCESS_FIELD_NUMBER: _ClassVar[int]
+    SCHEMA_FIELD_NUMBER: _ClassVar[int]
+    VALIDATION_ERRORS_FIELD_NUMBER: _ClassVar[int]
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    success: bool
+    schema: NodeDefinition
+    validation_errors: _containers.RepeatedCompositeFieldContainer[ValidationError]
+    message: str
+    def __init__(self, success: bool = ..., schema: _Optional[_Union[NodeDefinition, _Mapping]] = ..., validation_errors: _Optional[_Iterable[_Union[ValidationError, _Mapping]]] = ..., message: _Optional[str] = ...) -> None: ...
