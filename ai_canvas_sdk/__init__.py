@@ -10,6 +10,7 @@ from ai_canvas_sdk.custom_node import (
     PortTypeEnum,
     PositionEnum,
 )
+from ai_canvas_sdk.serialization import DataSerializer
 
 __all__ = [
     "CustomNode",
@@ -22,4 +23,5 @@ __all__ = [
     "PortEnum",
     "PortTypeEnum",
     "PositionEnum",
+    "DataSerializer",
 ]

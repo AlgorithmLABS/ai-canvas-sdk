@@ -488,7 +488,6 @@ class PortSchema(_message.Message):
     required: bool
     def __init__(self, type: _Optional[str] = ..., position: _Optional[str] = ..., port_type: _Optional[_Union[PortType, str]] = ..., label: _Optional[str] = ..., required: bool = ...) -> None: ...
 
-
 class ParameterSchema(_message.Message):
     __slots__ = ("text", "name", "form_type", "value", "value_type", "mode", "options", "is_tab")
     TEXT_FIELD_NUMBER: _ClassVar[int]
@@ -542,7 +541,6 @@ class NodeDefinition(_message.Message):
     entry_class: str
     dependencies: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, name: _Optional[str] = ..., data: _Optional[_Union[NodeData, _Mapping]] = ..., category: _Optional[str] = ..., width: _Optional[int] = ..., height: _Optional[int] = ..., version: _Optional[str] = ..., metadata: _Optional[_Union[NodeMetadata, _Mapping]] = ..., source_code: _Optional[str] = ..., entry_class: _Optional[str] = ..., dependencies: _Optional[_Iterable[str]] = ...) -> None: ...
-
 
 class DataSchema(_message.Message):
     __slots__ = ("schema_type", "columns", "properties")
@@ -640,7 +638,6 @@ class RegistrationResult(_message.Message):
     validation_errors: _containers.RepeatedCompositeFieldContainer[ValidationError]
     def __init__(self, success: bool = ..., message: _Optional[str] = ..., node_name: _Optional[str] = ..., validation_errors: _Optional[_Iterable[_Union[ValidationError, _Mapping]]] = ...) -> None: ...
 
-
 class ValidationError(_message.Message):
     __slots__ = ("field", "error_code", "error_message")
     FIELD_FIELD_NUMBER: _ClassVar[int]
@@ -712,7 +709,6 @@ class ListNodesRequest(_message.Message):
     page_size: int
     def __init__(self, category: _Optional[str] = ..., page: _Optional[int] = ..., page_size: _Optional[int] = ...) -> None: ...
 
-
 class ListNodesResponse(_message.Message):
     __slots__ = ("nodes", "total_count", "page", "page_size")
     NODES_FIELD_NUMBER: _ClassVar[int]
@@ -724,3 +720,47 @@ class ListNodesResponse(_message.Message):
     page: int
     page_size: int
     def __init__(self, nodes: _Optional[_Iterable[_Union[NodeDefinition, _Mapping]]] = ..., total_count: _Optional[int] = ..., page: _Optional[int] = ..., page_size: _Optional[int] = ...) -> None: ...
+
+class DeleteNodeRequest(_message.Message):
+    __slots__ = ("node_name", "version", "force")
+    NODE_NAME_FIELD_NUMBER: _ClassVar[int]
+    VERSION_FIELD_NUMBER: _ClassVar[int]
+    FORCE_FIELD_NUMBER: _ClassVar[int]
+    node_name: str
+    version: str
+    force: bool
+    def __init__(self, node_name: _Optional[str] = ..., version: _Optional[str] = ..., force: bool = ...) -> None: ...
+
+class DeleteNodeResponse(_message.Message):
+    __slots__ = ("success", "message", "deleted_versions")
+    SUCCESS_FIELD_NUMBER: _ClassVar[int]
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    DELETED_VERSIONS_FIELD_NUMBER: _ClassVar[int]
+    success: bool
+    message: str
+    deleted_versions: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, success: bool = ..., message: _Optional[str] = ..., deleted_versions: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class SchemaExtractionRequest(_message.Message):
+    __slots__ = ("source_code", "entry_class", "dependencies", "version")
+    SOURCE_CODE_FIELD_NUMBER: _ClassVar[int]
+    ENTRY_CLASS_FIELD_NUMBER: _ClassVar[int]
+    DEPENDENCIES_FIELD_NUMBER: _ClassVar[int]
+    VERSION_FIELD_NUMBER: _ClassVar[int]
+    source_code: str
+    entry_class: str
+    dependencies: _containers.RepeatedScalarFieldContainer[str]
+    version: str
+    def __init__(self, source_code: _Optional[str] = ..., entry_class: _Optional[str] = ..., dependencies: _Optional[_Iterable[str]] = ..., version: _Optional[str] = ...) -> None: ...
+
+class SchemaExtractionResponse(_message.Message):
+    __slots__ = ("success", "schema", "validation_errors", "message")
+    SUCCESS_FIELD_NUMBER: _ClassVar[int]
+    SCHEMA_FIELD_NUMBER: _ClassVar[int]
+    VALIDATION_ERRORS_FIELD_NUMBER: _ClassVar[int]
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    success: bool
+    schema: NodeDefinition
+    validation_errors: _containers.RepeatedCompositeFieldContainer[ValidationError]
+    message: str
+    def __init__(self, success: bool = ..., schema: _Optional[_Union[NodeDefinition, _Mapping]] = ..., validation_errors: _Optional[_Iterable[_Union[ValidationError, _Mapping]]] = ..., message: _Optional[str] = ...) -> None: ...
