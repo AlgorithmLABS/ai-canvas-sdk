@@ -1,6 +1,6 @@
 [project]
 name = "ai-canvas-sdk"
-version = "0.0.1"
+version = "0.1.0"
 description = "SDK for developing custom nodes in AI Canvas platform"
 requires-python = ">=3.10"
 authors = [{ name = "AlgorithmLABS", email = "contact@algorithmlabs.co.kr" }]
