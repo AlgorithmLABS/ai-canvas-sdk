@@ -63,74 +63,16 @@ pip install ai-canvas-sdk
 # SDK 버전 확인
 ai-canvas-sdk --version
 
-# 기본 기능 테스트
-ai-canvas-sdk test-connection
 ```
 
 성공적으로 설치되었다면 다음과 유사한 출력을 볼 수 있습니다:
 
 ```
-AI Canvas Custom Node SDK v1.0.0
+AI Canvas Custom Node SDK v0.1.0
 ✓ Python version: 3.10.12
 ✓ gRPC connection: OK
 ✓ Serialization: OK (Parquet/Arrow available)
 ✓ Installation complete!
-```
-
-## 네트워크 설정
-
-### 방화벽 설정
-gRPC 통신을 위한 포트 개방:
-
-```bash
-# Linux (iptables)
-sudo iptables -A INPUT -p tcp --dport 50051 -j ACCEPT
-
-# 또는 ufw 사용
-sudo ufw allow 50051
-```
-
-## 문제 해결
-
-### 설치 오류
-
-#### PyArrow 설치 실패
-```bash
-# 시스템 패키지 먼저 설치
-# Ubuntu/Debian
-sudo apt-get install libarrow-dev
-
-# macOS
-brew install apache-arrow
-
-# 그 후 재설치
-pip install --no-cache-dir pyarrow
-```
-
-#### gRPC 컴파일 오류
-```bash
-# 컴파일러 도구 설치
-# Ubuntu/Debian
-sudo apt-get install build-essential
-
-# macOS
-xcode-select --install
-```
-
-### 네트워크 연결 문제
-
-```bash
-# gRPC 서버 연결 테스트
-telnet your-server.com 50051
-
-# 또는
-nc -zv your-server.com 50051
-```
-
-### 권한 문제
-```bash
-# 가상 환경 사용 (권장)
-python -m venv venv && source venv/bin/activate
 ```
 
 ## 다음 단계
