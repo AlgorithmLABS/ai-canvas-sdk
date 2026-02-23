@@ -1,6 +1,6 @@
 [project]
 name = "ai-canvas-sdk"
-version = "0.1.0"
+version = "0.1.1"
 description = "SDK for developing custom nodes in AI Canvas platform"
 requires-python = ">=3.10"
 authors = [{ name = "AlgorithmLABS", email = "contact@algorithmlabs.co.kr" }]
@@ -8,9 +8,9 @@ dependencies = [
     # Keep runtime minimal; heavy data libs move to extras
     "grpcio>=1.75.0,<2.0.0",
     "protobuf>=6.32.1,<7.0.0",
-    "pandas==1.4.3",
+    "pandas>=2.0,<3",
     "pyarrow>=21.0.0,<22.0.0",
-    "numpy==1.22.2",
+    "numpy>=1.26.2,<2",
 ]
 
 [project.optional-dependencies]
@@ -25,9 +25,9 @@ dev = [
 
 # Convenience: everything (data + dev)
 all = [
-    "pandas==1.4.3",
+    "pandas>=2.0,<3",
     "pyarrow>=21.0.0,<22.0.0",
-    "numpy==1.22.2",
+    "numpy>=1.26.2,<2",
     "grpcio-tools>=1.75.0,<2.0.0",
     "grpc-stubs>=1.53.0.6,<2.0.0",
     "mypy-protobuf>=3.6.0,<4.0.0",
