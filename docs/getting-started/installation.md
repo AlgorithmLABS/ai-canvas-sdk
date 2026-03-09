@@ -23,7 +23,7 @@ AI Canvas Custom Node SDK를 설치하고 개발 환경을 설정하는 방법�
 
 ```bash
 # 기본 SDK 설치 (가벼운 버전)
-pip install ai-canvas-sdk
+pip install "git+https://github.com/AlgorithmLABS/ai-canvas-sdk"
 ```
 
 이 설치는 다음 추가 패키지를 포함합니다:
@@ -42,7 +42,8 @@ python -m venv ai-canvas-dev
 source ai-canvas-dev/bin/activate  # Linux/macOS
 
 # SDK 설치
-pip install ai-canvas-sdk
+pip install "git+https://github.com/AlgorithmLABS/ai-canvas-sdk"
+
 ```
 
 ### conda 사용
@@ -52,7 +53,7 @@ conda create -n ai-canvas-dev python=3.10
 conda activate ai-canvas-dev
 
 # SDK 설치
-pip install ai-canvas-sdk
+pip install "git+https://github.com/AlgorithmLABS/ai-canvas-sdk"
 ```
 
 ## 설치 확인
