@@ -61,7 +61,7 @@ AI Canvas는 시각적 워크플로우 빌더를 통해 ML 파이프라인을 �
 ### 1. 설치
 
 ```bash
-pip install ai-canvas-sdk
+pip install "git+https://github.com/AlgorithmLABS/ai-canvas-sdk"
 ```
 
 ### 2. 첫 번째 노드 생성
