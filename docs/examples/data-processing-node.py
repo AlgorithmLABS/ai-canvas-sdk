@@ -11,7 +11,18 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from ai_canvas_sdk import CustomNode, NodeContext, NodeSchema, PortType
+from ai_canvas_sdk import (
+    CustomNode,
+    NodeContext,
+    NodeData,
+    NodeMetadata,
+    NodeSchema,
+    Parameter,
+    Port,
+    PortEnum,
+    PortTypeEnum,
+    PositionEnum,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,82 +33,75 @@ class CustomerDataProcessor(CustomNode):
     고객 기본 정보와 구매 이력을 분석하여 고객 세그먼트와 통계를 생성합니다.
     """
 
-    @staticmethod
-    def get_schema() -> NodeSchema:
+    def get_schema(self) -> NodeSchema:
         return NodeSchema(
             name="CustomerDataProcessor",
-            display_name="고객 데이터 처리기",
-            description="고객 정보와 구매 데이터를 분석하여 고객 인사이트를 제공합니다",
             category="data_processing",
             version="1.0.0",
-            author="AI Canvas Team",
-            inputs=[
-                {
-                    "name": "customer_info",
-                    "display_name": "고객 정보",
-                    "type": PortType.DATAFRAME,
-                    "required": True,
-                    "description": "고객 기본 정보 (customer_id, name, email, signup_date, age_group)",
-                },
-                {
-                    "name": "purchase_history",
-                    "display_name": "구매 이력",
-                    "type": PortType.DATAFRAME,
-                    "required": True,
-                    "description": "구매 내역 (customer_id, purchase_date, amount, product_category)",
-                },
-            ],
-            outputs=[
-                {
-                    "name": "customer_segments",
-                    "display_name": "고객 세그먼트",
-                    "type": PortType.DATAFRAME,
-                    "description": "RFM 분석 기반 고객 세그먼트",
-                },
-                {
-                    "name": "purchase_analytics",
-                    "display_name": "구매 분석",
-                    "type": PortType.DATAFRAME,
-                    "description": "고객별 구매 패턴 분석 결과",
-                },
-                {
-                    "name": "summary_statistics",
-                    "display_name": "요약 통계",
-                    "type": PortType.JSON,
-                    "description": "전체 고객 데이터 요약 통계",
-                },
-            ],
-            parameters=[
-                {
-                    "name": "analysis_period_days",
-                    "display_name": "분석 기간 (일)",
-                    "type": "number",
-                    "default": 365,
-                    "min": 30,
-                    "max": 1095,
-                    "description": "분석에 포함할 과거 기간",
-                },
-                {
-                    "name": "min_purchase_amount",
-                    "display_name": "최소 구매 금액",
-                    "type": "number",
-                    "default": 0,
-                    "min": 0,
-                    "description": "분석에 포함할 최소 구매 금액",
-                },
-                {
-                    "name": "segment_method",
-                    "display_name": "세그먼트 방법",
-                    "type": "select",
-                    "options": [
-                        {"label": "RFM 분석", "value": "rfm"},
-                        {"label": "구매액 기준", "value": "monetary"},
-                        {"label": "구매 빈도 기준", "value": "frequency"},
-                    ],
-                    "default": "rfm",
-                    "description": "고객 세그먼트 분류 방법",
-                },
-            ],
+            metadata=NodeMetadata(author="AI Canvas Team"),
+            data=NodeData(
+                input_ports=[
+                    Port(
+                        type=PortEnum.TARGET,
+                        position=PositionEnum.LEFT,
+                        port_type=PortTypeEnum.DATASET,
+                        label="customer_info",
+                    ),
+                    Port(
+                        type=PortEnum.TARGET,
+                        position=PositionEnum.LEFT,
+                        port_type=PortTypeEnum.DATASET,
+                        label="purchase_history",
+                    ),
+                ],
+                output_ports=[
+                    Port(
+                        type=PortEnum.SOURCE,
+                        position=PositionEnum.RIGHT,
+                        port_type=PortTypeEnum.DATASET,
+                        label="customer_segments",
+                    ),
+                    Port(
+                        type=PortEnum.SOURCE,
+                        position=PositionEnum.RIGHT,
+                        port_type=PortTypeEnum.DATASET,
+                        label="purchase_analytics",
+                    ),
+                    Port(
+                        type=PortEnum.SOURCE,
+                        position=PositionEnum.RIGHT,
+                        port_type=PortTypeEnum.DISPLAY,
+                        label="summary_statistics",
+                    ),
+                ],
+                params=[
+                    Parameter(
+                        text="분석 기간 (일)",
+                        name="analysis_period_days",
+                        form_type="number",
+                        value=365,
+                    ),
+                    Parameter(
+                        text="최소 구매 금액",
+                        name="min_purchase_amount",
+                        form_type="number",
+                        value=0,
+                    ),
+                    Parameter(
+                        text="세그먼트 방법",
+                        name="segment_method",
+                        form_type="select",
+                        value="rfm",
+                        options={
+                            "items": [
+                                {"label": "RFM 분석", "value": "rfm"},
+                                {"label": "구매액 기준", "value": "monetary"},
+                                {"label": "구매 빈도 기준", "value": "frequency"},
+                            ]
+                        },
+                    ),
+                ],
+            ),
         )
 
     def validate(self, inputs: dict[str, Any], parameters: dict[str, Any]) -> None:

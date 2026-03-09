@@ -67,30 +67,46 @@ pip install ai-canvas-sdk
 ### 2. 첫 번째 노드 생성
 
 ```python
-from ai_canvas_sdk import CustomNode, NodeSchema, PortType, NodeContext
+from ai_canvas_sdk import (
+    CustomNode, NodeSchema, NodeData, Port,
+    PortEnum, PortTypeEnum, PositionEnum, NodeContext,
+)
 
 class HelloWorldNode(CustomNode):
-  @staticmethod
-  def get_schema() -> NodeSchema:
-    return NodeSchema(
-      name="HelloWorld",
-      display_name="Hello World",
-      description="간단한 Hello World 노드",
-      inputs=[{"name": "input_text", "type": PortType.TEXT}],
-      outputs=[{"name": "output_text", "type": PortType.TEXT}],
-    )
+    def get_schema(self) -> NodeSchema:
+        return NodeSchema(
+            name="HelloWorld",
+            data=NodeData(
+                input_ports=[
+                    Port(
+                        type=PortEnum.TARGET,
+                        position=PositionEnum.LEFT,
+                        port_type=PortTypeEnum.DATASET,
+                        label="input_data",
+                    ),
+                ],
+                output_ports=[
+                    Port(
+                        type=PortEnum.SOURCE,
+                        position=PositionEnum.RIGHT,
+                        port_type=PortTypeEnum.DATASET,
+                        label="output_data",
+                    ),
+                ],
+            ),
+        )
 
-  def run(self, inputs: dict, parameters: dict, ctx: NodeContext) -> dict:
-    text = inputs.get("input_text", "World")
-    ctx.log_info("processing hello")
-    ctx.progress(0.5)
-    return {"output_text": f"Hello, {text}!"}
+    def run(self, inputs: dict, parameters: dict, ctx: NodeContext) -> dict:
+        df = inputs.get("input_data")
+        ctx.log_info("processing hello")
+        ctx.progress(0.5)
+        return {"output_data": df}
 ```
 
 ### 3. 노드 실행
 
 ```bash
-ai-canvas-sdk run hello_world.py --test
+ai-canvas-sdk test hello_world.py
 ```
 
 ## 핵심 장점
