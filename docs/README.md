@@ -119,35 +119,6 @@ ai-canvas-sdk run hello_world.py --test
 - 선택적 mypy로 정적 타입 점검
 - 런타임 타입 불일치 방지
 
-## 배포/등록
-
-- external_grpc 노드로 등록 시, 런타임이 gRPC로 실행합니다. 노드 매니페스트 예시:
-
-```json
-{
-  "name": "partnerKeywordExtract",
-  "version": "1.0.0",
-  "execution_kind": "external_grpc",
-  "runtime": {
-    "endpoint": "dns:///custom-node-runtime:8443",
-    "tls": true,
-    "timeout_sec": 300,
-    "streaming": true
-  },
-  "io": {
-    "inputs_schema_ref": "schema://.../inputs.json",
-    "outputs_schema_ref": "schema://.../outputs.json"
-  }
-}
-```
-
-배포(등록):
-
-```bash
-ai-canvas-sdk publish manifest.json
-```
-
-등록 즉시 사용 가능하며, 워커는 최신 레지스트리를 조회합니다(캐시 무효화 이벤트/TTL 적용).
 
 ## 실행 제어(취소/타임아웃/멱등성)
 
@@ -162,6 +133,3 @@ ai-canvas-sdk publish manifest.json
 - 런타임과 노드 이미지는 서명/스캔 정책을 따릅니다.
 
 
----
-
-**다음 단계**: [설치 가이드](./getting-started/installation.md)에서 개발 환경을 설정해보세요.
