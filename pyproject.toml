@@ -14,7 +14,7 @@ dependencies = [
     "protobuf>=6.32.1,<7.0.0",
     "pandas>=2.0,<3",
     "pyarrow>=21.0.0,<22.0.0",
-    "numpy>=1.26.2,<2",
+    "numpy>=1.26.2,<3",
 ]
 
 [project.optional-dependencies]
@@ -31,7 +31,7 @@ dev = [
 all = [
     "pandas>=2.0,<3",
     "pyarrow>=21.0.0,<22.0.0",
-    "numpy>=1.26.2,<2",
+    "numpy>=1.26.2,<3",
     "grpcio-tools>=1.75.0,<2.0.0",
     "grpc-stubs>=1.53.0.6,<2.0.0",
     "mypy-protobuf>=3.6.0,<4.0.0",
