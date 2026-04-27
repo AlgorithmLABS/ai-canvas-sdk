@@ -1,0 +1,75 @@
+name: Tag dev snapshot on dev merge
+
+# dev 에 push 가 일어날 때마다 v{base}.dev{N} lightweight tag 자동 생성.
+# - {base} = main 의 최신 정식 태그(vX.Y.Z) 의 patch+1 (없으면 0.0.1)
+# - {N}    = 같은 base 의 기존 dev 태그 중 최댓값+1 (없으면 0)
+#
+# bump commit 안 만들고 태그만 찍음. setuptools-scm 가 git describe 로 패키지 버전 결정.
+# GitHub Release 안 만듦 (lightweight tag). 정식 vX.Y.Z 만 release.yml 이 처리.
+#
+# 자세한 흐름은 VERSIONING.md 참조.
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+concurrency:
+  group: dev-tag
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.ORG_PAT }}
+
+      - name: Compute next dev tag
+        id: next
+        run: |
+          set -euo pipefail
+          git fetch --tags origin
+          # 1. main 의 최신 정식 태그 → base = patch+1
+          LATEST_RELEASE=$(git tag --list \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' \
+            | sort -V \
+            | tail -1 || true)
+          if [ -z "$LATEST_RELEASE" ]; then
+            BASE="0.0.1"
+            echo "No prior vX.Y.Z release tag — starting at base=$BASE"
+          else
+            VER="${LATEST_RELEASE#v}"
+            MAJOR="${VER%%.*}"; rest="${VER#*.}"
+            MINOR="${rest%%.*}"; PATCH="${rest##*.}"
+            BASE="${MAJOR}.${MINOR}.$((PATCH+1))"
+          fi
+          # 2. 같은 base 의 기존 dev 태그 → N = 최댓값+1
+          LAST_DEV=$(git tag --list \
+            | grep -E "^v${BASE//./\\.}\\.dev[0-9]+\$" \
+            | sort -V \
+            | tail -1 || true)
+          if [ -z "$LAST_DEV" ]; then
+            N=0
+          else
+            N=$(echo "$LAST_DEV" | sed -E 's/.*\.dev([0-9]+)$/\1/')
+            N=$((N+1))
+          fi
+          TAG="v${BASE}.dev${N}"
+          echo "Next dev tag: $TAG (base=$BASE, N=$N, last_release=${LATEST_RELEASE:-none})"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${BASE}.dev${N}" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push tag
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.next.outputs.tag }}"
+          git tag "$TAG" "${{ github.sha }}"
+          git push origin "$TAG"
+
+      # NOTE: ai-canvas-dag 로의 repository_dispatch 는 cutover 시점에 활성화.
+      # 활성화 조건은 ai-canvas-logging dev-tag.yml 의 NOTE 참조.
