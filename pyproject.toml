@@ -1,6 +1,10 @@
+[build-system]
+requires = ["setuptools>=61.0", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "ai-canvas-sdk"
-version = "0.1.1"
+dynamic = ["version"]
 description = "SDK for developing custom nodes in AI Canvas platform"
 requires-python = ">=3.10"
 authors = [{ name = "AlgorithmLABS", email = "contact@algorithmlabs.co.kr" }]
@@ -10,7 +14,7 @@ dependencies = [
     "protobuf>=6.32.1,<7.0.0",
     "pandas>=2.0,<3",
     "pyarrow>=21.0.0,<22.0.0",
-    "numpy>=1.26.2,<2",
+    "numpy>=1.26.2,<3",
 ]
 
 [project.optional-dependencies]
@@ -27,7 +31,7 @@ dev = [
 all = [
     "pandas>=2.0,<3",
     "pyarrow>=21.0.0,<22.0.0",
-    "numpy>=1.26.2,<2",
+    "numpy>=1.26.2,<3",
     "grpcio-tools>=1.75.0,<2.0.0",
     "grpc-stubs>=1.53.0.6,<2.0.0",
     "mypy-protobuf>=3.6.0,<4.0.0",
@@ -46,3 +50,9 @@ ai-canvas-sdk = "ai_canvas_sdk.cli:main"
 where = ["."]
 include = ["*"]
 exclude = ["tests*"]
+
+[tool.setuptools_scm]
+# 빌드 시 _version.py 자동 생성. tag 가 곧 패키지 버전.
+# dev push 마다 v{base}.dev{N} 태그가 자동 생성되며, 그게 곧 설치 버전.
+version_file = "ai_canvas_sdk/_version.py"
+fallback_version = "0.0.0+unknown"

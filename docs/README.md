@@ -77,6 +77,56 @@ class HelloWorldNode(CustomNode):
 ai-canvas-sdk test hello_world.py
 ```
 
+#### 주요 옵션
+
+| 옵션 | 단축 | 설명 |
+|------|------|------|
+| `node_file` | | (필수) 테스트할 노드 파일 경로 |
+| `--class` | | 특정 노드 클래스 지정 (파일에 여러 노드가 있을 경우) |
+| `--validate-only` | | 스키마 검증만 수행, 실행하지 않음 |
+| `--input` | `-i` | 입력 데이터 파일 경로 (JSON 또는 CSV) |
+| `--params` | `-p` | 파라미터 JSON 문자열 |
+| `--output` | `-o` | 결과를 저장할 파일 경로 (JSON 또는 CSV) |
+| `--verbose` | `-v` | 상세 출력 모드 |
+
+#### 활용 예시
+
+**스키마 검증만 수행:**
+```bash
+ai-canvas-sdk test hello_world.py --validate-only
+```
+
+**입력 데이터를 지정하여 실행:**
+```bash
+ai-canvas-sdk test hello_world.py -i input_data.json
+```
+
+**파라미터 전달:**
+```bash
+ai-canvas-sdk test hello_world.py -p '{"message": "Hello"}'
+```
+
+**결과를 파일로 저장:**
+```bash
+ai-canvas-sdk test hello_world.py -i input_data.csv -o result.json
+```
+
+**특정 클래스를 지정하여 실행:**
+```bash
+ai-canvas-sdk test my_nodes.py --class MyCustomNode
+```
+
+**여러 옵션 조합:**
+```bash
+ai-canvas-sdk test hello_world.py -i data.json -p '{"threshold": 0.5}' -o output.csv -v
+```
+
+#### 입력 데이터 형식
+
+- **JSON (포트별 매핑):** `{"port_label": [{"col": "val"}, ...]}` — 각 포트에 데이터를 개별 매핑
+- **JSON (단일 배열):** `[{"col": "val"}, ...]` — 첫 번째 입력 포트에 자동 할당
+- **CSV:** 첫 번째 입력 포트에 자동 할당
+
 ## 핵심 장점
 
 ### 서버 코드 격리
