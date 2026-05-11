@@ -5,14 +5,14 @@ ai-canvas-sdk 는 **태그 기반 버전 관리** + **`setuptools-scm`** 으로 
 ## 핵심 원칙
 
 1. **버전의 source of truth = git tag**. pyproject.toml/`__init__.py` 에 static version 이 없음.
-2. **dev 빌드 = 브랜치 ref 직접 소비**. devN incrementing 자동 태그는 폐기 (`dev-tag.yml` 삭제). 다만 매 stable 릴리즈마다 다음 minor 의 `vX.Y.0.dev0` lightweight tag 하나만 dev HEAD 에 anchor 로 박힘 (setuptools-scm 표시 정합성용). 소비자 (back / dag / cne 등) 는 변함없이 `git+https://...@dev` ref 로 source clone.
+2. **dev 빌드 = 브랜치 ref 직접 소비**. devN incrementing 자동 태그는 폐기 (`dev-tag.yml` 삭제). 다만 매 stable 릴리즈마다 다음 minor 의 `vX.Y+1.0.dev0` lightweight tag 하나만 dev HEAD 에 anchor 로 생성됨 (setuptools-scm 표시 정합성용). 소비자 (back / dag / cne 등) 는 변함없이 `git+https://...@dev` ref 로 source clone.
 3. **main 머지 + 수동 tag = 정식 릴리즈**. `vX.Y.Z` 태그가 release.yml 을 trigger 해서 GitHub Release 생성.
 
 ## 브랜치와 태그 형태
 
 | 브랜치 | 태그 | 소비 방식 | 예시 |
 |---|---|---|---|
-| `dev`  | `vX.Y.0.dev0` (anchor 전용) | `git+https://...@dev` 브랜치 ref clone. 매 stable 릴리즈마다 다음 minor 의 `.dev0` 한 개를 anchor 로 생성 — setuptools-scm 가 그 위에서 `.dev{distance}` 합성 | `v0.2.0.dev0` |
+| `dev`  | `vX.Y+1.0.dev0` (anchor 전용) | `git+https://...@dev` 브랜치 ref clone. 매 stable 릴리즈마다 다음 minor 의 `.dev0` 한 개를 anchor 로 생성 — setuptools-scm 가 그 위에서 `.dev{distance}` 합성 | `v0.2.0.dev0` |
 | `main` | `vX.Y.Z`    | annotated tag, GitHub Release | `v0.1.2` |
 
 `X.Y.Z` 는 SemVer:
