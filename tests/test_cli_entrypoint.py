@@ -7,6 +7,14 @@ from ai_canvas_sdk.cli import main
 
 
 ROOT = Path(__file__).resolve().parents[1]
+DOCS_ROOT = ROOT / "docs"
+
+
+def _read_all_docs_markdown() -> str:
+    return "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in sorted(DOCS_ROOT.rglob("*.md"))
+    )
 
 
 def _project_script_entry(name: str) -> str:
@@ -46,27 +54,11 @@ def test_no_orphan_cli_module_shadows_package_cli(capsys) -> None:
     assert "invalid choice" in capsys.readouterr().err
 
 
-def test_cli_help_matches_registered_commands(capsys) -> None:
+def test_all_markdown_cli_command_examples_match_registered_surface(capsys) -> None:
     main([])
     captured = capsys.readouterr().out
 
-    docs = "\n".join(
-        (ROOT / rel).read_text(encoding="utf-8")
-        for rel in (
-            "docs/README.md",
-            "docs/prd/unified-prd.md",
-            "docs/getting-started/installation.md",
-            "docs/getting-started/quick-start.md",
-            "docs/getting-started/first-node.md",
-            "docs/concepts/architecture.md",
-            "docs/concepts/data-types.md",
-            "docs/concepts/lifecycle.md",
-            "docs/guides/basic-node-development.md",
-            "docs/api-reference/custom-node-class.md",
-            "docs/troubleshooting/faq.md",
-        )
-        if (ROOT / rel).exists()
-    )
+    docs = _read_all_docs_markdown()
 
     assert "test" in captured
     assert not re.search(
@@ -75,3 +67,36 @@ def test_cli_help_matches_registered_commands(capsys) -> None:
     )
     assert "--sample-data" not in docs
     assert "--debug" not in docs
+
+
+def test_docs_do_not_overstate_cli_surface() -> None:
+    docs = _read_all_docs_markdown()
+
+    implemented_options = {
+        "--class",
+        "--validate-only",
+        "--input",
+        "-i",
+        "--params",
+        "-p",
+        "--output",
+        "-o",
+        "--verbose",
+        "-v",
+    }
+
+    present_options = {option for option in implemented_options if option in docs}
+    assert present_options == implemented_options, (
+        "docs must document every implemented CLI option: "
+        f"missing {sorted(implemented_options - present_options)}"
+    )
+
+    for forbidden in ("--sample-data", "--debug"):
+        assert forbidden not in docs, f"docs must not mention stale option {forbidden}"
+
+    for stale_phrase in (
+        "CLI 명령어 전체 플로우",
+        "모든 명령어 정상 동작",
+        "Week 5: CLI Tools & Developer Experience",
+    ):
+        assert stale_phrase not in docs, f"docs must not overstate CLI scope via {stale_phrase!r}"

@@ -7,7 +7,6 @@
 이 가이드를 완료하면:
 - 간단한 텍스트 처리 노드 생성
 - 로컬에서 노드 테스트
-- AI Canvas 플랫폼에 노드 등록
 
 ## 전제 조건
 
@@ -177,70 +176,12 @@ node = DataFilterNode()
 
 ```bash
 # 샘플 데이터로 테스트
-ai-canvas-sdk test data_filter_node.py --sample-data
+ai-canvas-sdk test data_filter_node.py --validate-only
 ```
 
-SDK가 자동으로 샘플 DataFrame을 생성해서 테스트합니다.
+스키마가 맞는지 먼저 확인한 뒤, `-i`와 `-p`로 실제 입력을 주고 다시 실행합니다.
 
-## Step 3: 서버에 노드 등록
-
-### 3.1 노드 패키징
-
-```bash
-# 노드 패키지 생성
-ai-canvas-sdk package \
-  --nodes data_filter_node.py \
-  --output my_custom_nodes.zip \
-  --version "1.0.0"
-```
-
-### 3.2 서버 등록
-
-```bash
-# 서버에 노드 등록
-ai-canvas-sdk register \
-  --package my_custom_nodes.zip \
-  --server https://your-aicanvas-custom-node-server.com \
-  --api-key YOUR_API_KEY
-```
-
-성공하면 다음과 같은 메시지가 표시됩니다:
-```
-노드 등록 완료!
-노드 ID: hello-world-v1.0.0, data-filter-v1.0.0
-서버: https://your-aicanvas-custom-node-server.com
-```
-
-## Step 4: AI Canvas에서 사용
-
-1. **AI Canvas 웹 인터페이스 접속**
-2. **새 캔버스 생성**
-3. **노드 팔레트에서 "Custom Node" 카테고리 확인**
-4. **데이터 필터 노드를 캔버스로 드래그**
-5. **노드 설정에서 파라미터 입력**
-6. **실행 버튼 클릭**
-
-## 성능 확인
-
-### 실행 시간 측정
-
-```bash
-# 성능 프로파일링
-ai-canvas-sdk profile hello_node.py \
-  --input '{"input_text": "Performance Test"}' \
-  --iterations 100
-```
-
-결과 예시:
-```
-성능 보고서
-평균 실행 시간: 2.3ms
-메모리 사용량: 1.2MB
-직렬화 오버헤드: 0.8ms
-네트워크 지연: 15ms
-```
-
-### 대용량 데이터 테스트
+## Step 3: 로컬 테스트 반복
 
 ```python
 # large_data_test.py

@@ -499,16 +499,17 @@ if __name__ == '__main__':
 ## Step 5: 실행 및 테스트
 
 ```bash
-# 노드 검증
-ai-canvas-sdk validate customer_analytics_node.py
+# 스키마 검증
+ai-canvas-sdk test customer_analytics_node.py --validate-only
 
 # 테스트 데이터로 실행
 python test_customer_analytics.py
 
-# 성능 프로파일링
-ai-canvas-sdk profile customer_analytics_node.py \
-  --sample-data \
-  --iterations 10
+# 입력과 파라미터를 지정한 실행
+ai-canvas-sdk test customer_analytics_node.py \
+  -i customer_data.json \
+  -p '{"segment_method": "rfm"}' \
+  -v
 ```
 
 예상 출력:
