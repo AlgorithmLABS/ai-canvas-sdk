@@ -187,33 +187,8 @@ ai-canvas-sdk test hello_world.py -i data.json -p '{"threshold": 0.5}' -o output
 
 ## 배포/등록
 
-- external_grpc 노드로 등록 시, 런타임이 gRPC로 실행합니다. 노드 매니페스트 예시:
-
-```json
-{
-  "name": "partnerKeywordExtract",
-  "version": "1.0.0",
-  "execution_kind": "external_grpc",
-  "runtime": {
-    "endpoint": "dns:///custom-node-runtime:8443",
-    "tls": true,
-    "timeout_sec": 300,
-    "streaming": true
-  },
-  "io": {
-    "inputs_schema_ref": "schema://.../inputs.json",
-    "outputs_schema_ref": "schema://.../outputs.json"
-  }
-}
-```
-
-배포(등록):
-
-```bash
-ai-canvas-sdk publish manifest.json
-```
-
-등록 즉시 사용 가능하며, 워커는 최신 레지스트리를 조회합니다(캐시 무효화 이벤트/TTL 적용).
+이 저장소의 CLI는 현재 로컬 노드 검증용 `test` 명령과 버전 출력만 제공합니다.
+배포/등록 작업은 별도 플랫폼 도구에서 수행합니다.
 
 ## 실행 제어(취소/타임아웃/멱등성)
 

@@ -514,9 +514,9 @@ class ValidatedNode(CustomNode):
 ### 문제 해결이 어려운 경우
 
 1. **로그 파일 확인**: `~/.ai-canvas/sdk.log`
-2. **샘플 데이터로 테스트**: `ai-canvas-sdk test your_node.py --sample-data`
-3. **디버그 모드 실행**: `ai-canvas-sdk test your_node.py --debug`
-4. **메모리 프로파일링**: `ai-canvas-sdk profile your_node.py`
+2. **스키마만 먼저 확인**: `ai-canvas-sdk test your_node.py --validate-only`
+3. **입력과 파라미터를 지정해 실행**: `ai-canvas-sdk test your_node.py -i input.json -p '{"message": "Hi"}' -v`
+4. **결과를 파일로 저장**: `ai-canvas-sdk test your_node.py -i input.json -o output.json`
 
 ### 지원 채널
 
@@ -529,16 +529,10 @@ class ValidatedNode(CustomNode):
 
 ```bash
 # 노드 스키마 검증
-ai-canvas-sdk validate my_node.py
+ai-canvas-sdk test my_node.py --validate-only
 
-# 샘플 데이터로 테스트
-ai-canvas-sdk test my_node.py --sample-data --verbose
-
-# 성능 프로파일링
-ai-canvas-sdk profile my_node.py --iterations 10
-
-# 메모리 사용량 모니터링
-ai-canvas-sdk monitor my_node.py --memory
+# 입력과 파라미터를 지정해 실행
+ai-canvas-sdk test my_node.py -i input.json -p '{"message": "Hello"}' -v
 
 # 에러 로그 실시간 확인
 tail -f ~/.ai-canvas/sdk.log
