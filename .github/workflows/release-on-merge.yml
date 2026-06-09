@@ -1,0 +1,121 @@
+# =============================================================================
+# Release on merge (label-driven)
+#
+# main 향 PR 에 붙은 bump label(major|minor|patch) 로 다음 정식 버전을 결정하고,
+# PR 머지 시 vX.Y.Z 태그를 push 한다. 태그 push 는 기존 release.yml 을 cascade 로
+# 트리거하여 wheel 빌드 + GitHub Release(+ dev HEAD .dev0 anchor) 를 발행한다.
+# (ai-canvas-back / ai-canvas-dag 의 label-on-merge release 와 동일한 설계.
+#  단 SDK 는 이미 태그 트리거 release.yml 이 패키지 빌드/릴리즈를 담당하므로
+#  여기서는 build/release 를 중복하지 않고 "라벨 -> 버전 태그" 까지만 수행한다.)
+#
+# tag-only 방식 — 버전 파일은 건드리지 않는다(버전은 setuptools-scm 가 태그에서 도출).
+#
+# ⚠️ 태그 push 에 ORG_PAT 가 필요하다: 기본 GITHUB_TOKEN 으로 push 한 태그는
+#    다른 워크플로(release.yml)를 트리거하지 못한다(Actions 무한루프 방지 규칙).
+#    ORG_PAT(이미 release.yml anchor step 에서 사용)로 push 해야 cascade 된다.
+# =============================================================================
+
+name: Release on merge
+
+on:
+  pull_request:
+    types: [opened, edited, labeled, unlabeled, synchronize, reopened, closed]
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: release-on-merge-main-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  # PR 가 열려있는 동안 bump label 검증. branch protection 의 required check 으로 등록.
+  bump-label:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify exactly one bump label (major | minor | patch)
+        env:
+          LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: |
+          set -euo pipefail
+          MATCHED=$(printf '%s' "$LABELS" | jq -r '.[] | select(. == "major" or . == "minor" or . == "patch")')
+          COUNT=$(printf '%s' "$MATCHED" | grep -c . || true)
+          if [ "$COUNT" -eq 0 ]; then
+            echo "::error::PR must have exactly one bump label: major | minor | patch"
+            exit 1
+          fi
+          if [ "$COUNT" -gt 1 ]; then
+            echo "::error::PR has multiple bump labels — keep only one of major | minor | patch. Found:"
+            printf '%s\n' "$MATCHED"
+            exit 1
+          fi
+          echo "::notice::Bump label OK — $MATCHED"
+
+  # PR 머지 시 다음 vX.Y.Z 태그를 push. release.yml 이 cascade 로 빌드/릴리즈.
+  tag:
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0   # 기존 vX.Y.Z 태그 조회 + setuptools-scm
+          # ORG_PAT: 아래 태그 push 가 release.yml 을 cascade 트리거하려면 PAT 필요.
+          token: ${{ secrets.ORG_PAT }}
+
+      - name: Extract bump level from PR labels
+        id: level
+        env:
+          LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
+        run: |
+          set -euo pipefail
+          LEVEL=$(printf '%s' "$LABELS" | jq -r '.[] | select(. == "major" or . == "minor" or . == "patch")' | head -1)
+          if [ -z "$LEVEL" ]; then
+            echo "::error::No bump label found on PR — expected one of: major, minor, patch"
+            exit 1
+          fi
+          echo "level=$LEVEL" >> "$GITHUB_OUTPUT"
+          echo "::notice::Bump level: $LEVEL"
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Compute next version and push tag
+        id: bump
+        env:
+          LEVEL: ${{ steps.level.outputs.level }}
+        run: |
+          set -euo pipefail
+          # 정식 릴리즈 태그만 고려 (vX.Y.Z). v0.2.0.dev0 같은 pre-release anchor 는 제외.
+          PREV_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1 || true)
+          if [ -z "$PREV_TAG" ]; then
+            CURRENT="0.0.0"
+          else
+            CURRENT="${PREV_TAG#v}"
+          fi
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+          case "$LEVEL" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+            *) echo "::error::Unknown bump level: $LEVEL"; exit 1 ;;
+          esac
+          NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
+
+          if git rev-parse --verify "refs/tags/${NEW_TAG}" >/dev/null 2>&1; then
+            echo "::error::Tag ${NEW_TAG} already exists — resolve the version collision before merging."
+            exit 1
+          fi
+
+          # main HEAD(= 머지 커밋)에 태그. setuptools-scm 가 이 태그에서 vX.Y.Z 를 도출.
+          git tag "$NEW_TAG"
+          git push origin "$NEW_TAG"
+          echo "new_tag=$NEW_TAG" >> "$GITHUB_OUTPUT"
+          echo "::notice::Tagged ${PREV_TAG:-<none>} → ${NEW_TAG}. release.yml 가 cascade 로 빌드/릴리즈합니다."
