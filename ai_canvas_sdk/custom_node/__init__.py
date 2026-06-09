@@ -11,6 +11,10 @@ from ai_canvas_sdk.custom_node.models import (
     PositionEnum,
 )
 from ai_canvas_sdk.custom_node.node_context import LogLevel, NodeContext
+from ai_canvas_sdk.custom_node.exceptions import (
+    CustomNodeError,
+    SecretNotAvailableError,
+)
 
 
 class CustomNode(ABC):
@@ -24,6 +28,11 @@ class CustomNode(ABC):
 
 
     """
+
+    # 노드 작성자가 override: 이 노드가 요구하는 동적 secret 이름 목록.
+    # 등록 시 추출되어 노드 메타에 저장되고, 실행 시 선언된 secret만 ctx.get_secret 으로 주입된다.
+    # override 시에는 새 리스트를 할당할 것(공유 기본값을 in-place 로 mutate 하지 말 것).
+    required_secrets: list[str] = []
 
     @abstractmethod
     def get_schema(self) -> NodeSchema:
@@ -109,4 +118,6 @@ __all__ = [
     "PortTypeEnum",
     "PositionEnum",
     "LogLevel",
+    "CustomNodeError",
+    "SecretNotAvailableError",
 ]

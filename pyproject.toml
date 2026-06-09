@@ -1,6 +1,6 @@
 [project]
 name = "ai-canvas-sdk"
-version = "0.1.1"
+version = "0.2.0"
 description = "SDK for developing custom nodes in AI Canvas platform"
 requires-python = ">=3.10"
 authors = [{ name = "AlgorithmLABS", email = "contact@algorithmlabs.co.kr" }]
@@ -21,6 +21,7 @@ dev = [
     "grpcio-tools>=1.75.0,<2.0.0",
     "grpc-stubs>=1.53.0.6,<2.0.0",
     "mypy-protobuf>=3.6.0,<4.0.0",
+    "pytest>=8.0.0,<9.0.0",
 ]
 
 # Convenience: everything (data + dev)
@@ -46,3 +47,6 @@ ai-canvas-sdk = "ai_canvas_sdk.cli:main"
 where = ["."]
 include = ["*"]
 exclude = ["tests*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

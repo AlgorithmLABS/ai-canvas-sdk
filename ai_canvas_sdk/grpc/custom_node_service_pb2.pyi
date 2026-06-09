@@ -519,7 +519,7 @@ class NodeData(_message.Message):
     def __init__(self, input_ports: _Optional[_Iterable[_Union[PortSchema, _Mapping]]] = ..., output_ports: _Optional[_Iterable[_Union[PortSchema, _Mapping]]] = ..., params: _Optional[_Iterable[_Union[ParameterSchema, _Mapping]]] = ...) -> None: ...
 
 class NodeDefinition(_message.Message):
-    __slots__ = ("name", "data", "category", "width", "height", "version", "metadata", "source_code", "entry_class", "dependencies")
+    __slots__ = ("name", "data", "category", "width", "height", "version", "metadata", "source_code", "entry_class", "dependencies", "required_secrets")
     NAME_FIELD_NUMBER: _ClassVar[int]
     DATA_FIELD_NUMBER: _ClassVar[int]
     CATEGORY_FIELD_NUMBER: _ClassVar[int]
@@ -530,6 +530,7 @@ class NodeDefinition(_message.Message):
     SOURCE_CODE_FIELD_NUMBER: _ClassVar[int]
     ENTRY_CLASS_FIELD_NUMBER: _ClassVar[int]
     DEPENDENCIES_FIELD_NUMBER: _ClassVar[int]
+    REQUIRED_SECRETS_FIELD_NUMBER: _ClassVar[int]
     name: str
     data: NodeData
     category: str
@@ -540,7 +541,8 @@ class NodeDefinition(_message.Message):
     source_code: str
     entry_class: str
     dependencies: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, name: _Optional[str] = ..., data: _Optional[_Union[NodeData, _Mapping]] = ..., category: _Optional[str] = ..., width: _Optional[int] = ..., height: _Optional[int] = ..., version: _Optional[str] = ..., metadata: _Optional[_Union[NodeMetadata, _Mapping]] = ..., source_code: _Optional[str] = ..., entry_class: _Optional[str] = ..., dependencies: _Optional[_Iterable[str]] = ...) -> None: ...
+    required_secrets: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, name: _Optional[str] = ..., data: _Optional[_Union[NodeData, _Mapping]] = ..., category: _Optional[str] = ..., width: _Optional[int] = ..., height: _Optional[int] = ..., version: _Optional[str] = ..., metadata: _Optional[_Union[NodeMetadata, _Mapping]] = ..., source_code: _Optional[str] = ..., entry_class: _Optional[str] = ..., dependencies: _Optional[_Iterable[str]] = ..., required_secrets: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class DataSchema(_message.Message):
     __slots__ = ("schema_type", "columns", "properties")

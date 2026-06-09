@@ -46,7 +46,7 @@ def compile_protos():
         print(f"\n컴파일 중: {proto_file.name}")
 
         cmd = [
-            "python",
+            sys.executable,
             "-m",
             "grpc_tools.protoc",
             f"--proto_path={proto_dir}",

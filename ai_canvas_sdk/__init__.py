@@ -1,7 +1,8 @@
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from ai_canvas_sdk.custom_node import (
     CustomNode,
+    CustomNodeError,
     NodeContext,
     NodeData,
     NodeMetadata,
@@ -11,6 +12,7 @@ from ai_canvas_sdk.custom_node import (
     PortEnum,
     PortTypeEnum,
     PositionEnum,
+    SecretNotAvailableError,
 )
 from ai_canvas_sdk.serialization import DataSerializer
 
@@ -26,5 +28,7 @@ __all__ = [
     "PortEnum",
     "PortTypeEnum",
     "PositionEnum",
+    "CustomNodeError",
+    "SecretNotAvailableError",
     "DataSerializer",
 ]
