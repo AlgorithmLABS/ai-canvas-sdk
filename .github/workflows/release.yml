@@ -54,6 +54,44 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Build grouped release notes
+        id: notes
+        run: |
+          set -euo pipefail
+          NEW="${{ github.event.inputs.tag || github.ref_name }}"
+          # 직전 정식 릴리즈 태그 (vX.Y.Z; *.devN anchor 제외)
+          PREV=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | grep -v "^${NEW}$" | head -1 || true)
+          if [ -n "$PREV" ]; then RANGE="${PREV}..${NEW}"; else RANGE="$NEW"; fi
+          echo "::notice::release notes range: $RANGE"
+          # conventional-commit type -> 섹션 제목 (표시 순서 유지)
+          CATS=( "feat|✨ Features" "fix|🐛 Bug Fixes" "perf|⚡ Performance" \
+                 "refactor|♻️ Refactors" "docs|📝 Documentation" "test|✅ Tests" \
+                 "build|📦 Build" "ci|👷 CI" "chore|🔧 Chores" )
+          LOG=$(git log --no-merges --pretty='format:%s|%h' "$RANGE" || true)
+          OUT=""; USED=""
+          for entry in "${CATS[@]}"; do
+            PFX="${entry%%|*}"; TITLE="${entry#*|}"; SECTION=""
+            while IFS='|' read -r subj hash; do
+              [ -z "$subj" ] && continue
+              t=$(printf '%s' "$subj" | sed -E 's/^([a-zA-Z]+)(\([^)]*\))?!?:.*/\1/' | tr 'A-Z' 'a-z')
+              if [ "$t" = "$PFX" ]; then
+                desc=$(printf '%s' "$subj" | sed -E 's/^[a-zA-Z]+(\([^)]*\))?!?:[[:space:]]*//')
+                SECTION="${SECTION}- ${desc} (${hash})"$'\n'; USED="${USED}${hash}"$'\n'
+              fi
+            done <<< "$LOG"
+            [ -n "$SECTION" ] && OUT="${OUT}## ${TITLE}"$'\n'"${SECTION}"$'\n'
+          done
+          OTHER=""
+          while IFS='|' read -r subj hash; do
+            [ -z "$subj" ] && continue
+            printf '%s' "$USED" | grep -q "^${hash}$" || OTHER="${OTHER}- ${subj} (${hash})"$'\n'
+          done <<< "$LOG"
+          [ -n "$OTHER" ] && OUT="${OUT}## 🗒 Other"$'\n'"${OTHER}"$'\n'
+          [ -z "$OUT" ] && OUT="_No changes in ${RANGE}._"
+          printf '%s\n' "$OUT" > release_notes.md
+          echo "----- release_notes.md -----"; cat release_notes.md
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -61,7 +99,7 @@ jobs:
           name: Release ${{ steps.ver.outputs.tag }}
           draft: false
           prerelease: false
-          generate_release_notes: true
+          body_path: release_notes.md
           files: dist/*
 
       - name: Anchor dev HEAD with next-minor dev0
