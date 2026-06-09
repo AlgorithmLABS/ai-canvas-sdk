@@ -1,0 +1,95 @@
+name: Release
+
+# 정식 vX.Y.Z 태그 push 시 wheel build + GitHub Release.
+# 동시에 dev 브랜치 HEAD 에 v<next-minor>.dev0 lightweight tag 를 생성하여
+# 다음 dev 사이클의 setuptools-scm anchor 역할을 하게 만든다 — stable tag (vX.Y.Z) 는
+# main 위에만 있어 dev 의 ancestor 가 아닌 토폴로지에서 setuptools-scm 가 옛 anchor 로
+# 떨어지는 문제 회피. .dev0 만 생성하며 N>=1 은 생성하지 않음 (_bump_dev 가 N>=1 을
+# ValueError 로 거부 — 옛 dev-tag.yml incrementing 자동화가 실패하던 사유와 동일).
+
+on:
+  push:
+    tags:
+      # 정식 릴리즈 태그만. dev 빌드는 dev 브랜치 ref 직접 소비 (자동 dev 태그 폐기).
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag (e.g., v0.2.0)'
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+      tag: ${{ steps.ver.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+          fetch-depth: 0   # setuptools-scm 가 git describe 사용
+          # 아래 anchor step 이 dev 브랜치로 tag push 하려면 ORG_PAT 필요.
+          token: ${{ secrets.ORG_PAT }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+
+      - name: Build wheel + sdist
+        run: python -m build
+
+      - name: Resolve version
+        id: ver
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: Release ${{ steps.ver.outputs.tag }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: dist/*
+
+      - name: Anchor dev HEAD with next-minor dev0
+        # 방금 release 한 vX.Y.Z 의 다음 minor 를 .dev0 lightweight tag 로 dev HEAD 에 anchor.
+        # 이유: stable tag 가 main 위에만 있어 dev 의 ancestor 가 아님 → 다운스트림 dev 빌드의
+        # setuptools-scm 출력이 한참 옛날 anchor 로 떨어지는 문제. guess-next-dev 가 .dev0 만
+        # _bump_dev 로 strip 후 .dev{distance} 재포맷하므로 dev0 만 생성. devN N>=1 은
+        # ValueError — 옛 dev-tag.yml incrementing 자동화 실패 사유. 이미 있으면 skip (멱등).
+        run: |
+          set -euo pipefail
+          RELEASED="${{ steps.ver.outputs.tag }}"
+          V="${RELEASED#v}"
+          MAJ="${V%%.*}"
+          rest="${V#*.}"
+          MIN="${rest%%.*}"
+          DEV_TAG="v${MAJ}.$((MIN + 1)).0.dev0"
+
+          git fetch origin dev
+          DEV_SHA=$(git rev-parse origin/dev)
+
+          if git rev-parse --verify "refs/tags/${DEV_TAG}" >/dev/null 2>&1; then
+            EXISTING=$(git rev-parse "refs/tags/${DEV_TAG}^{commit}")
+            echo "::notice::${DEV_TAG} 이미 존재 (${EXISTING}) — dev 사이클 진행 중으로 간주, skip"
+            exit 0
+          fi
+
+          git tag "$DEV_TAG" "$DEV_SHA"
+          git push origin "$DEV_TAG"
+          echo "Anchored: $DEV_TAG → $DEV_SHA (dev HEAD)"
+
+  # NOTE: ai-canvas-dag 로의 repository_dispatch 는 cutover 시점에 추가.

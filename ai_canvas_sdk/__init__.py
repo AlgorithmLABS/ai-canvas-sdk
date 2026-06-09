@@ -1,4 +1,7 @@
-__version__ = "0.2.0"
+try:
+    from ai_canvas_sdk._version import version as __version__
+except ImportError:
+    __version__ = "0.0.0+unknown"
 
 from ai_canvas_sdk.custom_node import (
     CustomNode,

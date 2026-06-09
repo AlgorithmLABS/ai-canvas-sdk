@@ -1,6 +1,10 @@
+[build-system]
+requires = ["setuptools>=61.0", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "ai-canvas-sdk"
-version = "0.2.0"
+dynamic = ["version"]
 description = "SDK for developing custom nodes in AI Canvas platform"
 requires-python = ">=3.10"
 authors = [{ name = "AlgorithmLABS", email = "contact@algorithmlabs.co.kr" }]
@@ -10,7 +14,7 @@ dependencies = [
     "protobuf>=6.32.1,<7.0.0",
     "pandas>=2.0,<3",
     "pyarrow>=21.0.0,<22.0.0",
-    "numpy>=1.26.2,<2",
+    "numpy>=1.26.2,<3",
 ]
 
 [project.optional-dependencies]
@@ -28,7 +32,7 @@ dev = [
 all = [
     "pandas>=2.0,<3",
     "pyarrow>=21.0.0,<22.0.0",
-    "numpy>=1.26.2,<2",
+    "numpy>=1.26.2,<3",
     "grpcio-tools>=1.75.0,<2.0.0",
     "grpc-stubs>=1.53.0.6,<2.0.0",
     "mypy-protobuf>=3.6.0,<4.0.0",
@@ -50,3 +54,8 @@ exclude = ["tests*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+[tool.setuptools_scm]
+# 빌드 시 _version.py 자동 생성. 정식 릴리즈 태그 (vX.Y.Z) 만 사용.
+# dev tag 자동 생성은 폐기 — dev 빌드는 `git+https://...@dev` 브랜치 ref 직접 소비.
+version_file = "ai_canvas_sdk/_version.py"
+fallback_version = "0.0.0+unknown"
