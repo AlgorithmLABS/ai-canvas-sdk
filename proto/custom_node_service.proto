@@ -377,6 +377,7 @@ message NodeDefinition {
   string source_code = 8;          // Python 소스 코드
   string entry_class = 9;          // CustomNode 클래스 이름 (예: "HelloWorldNode")
   repeated string dependencies = 10; // 추가 pip 패키지 의존성 (예: ["pandas==2.0.0"])
+  repeated string required_secrets = 11; // 노드가 요구하는 동적 secret 이름 목록 (예: ["weather-api"])
 }
 
 
