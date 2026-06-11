@@ -10,7 +10,6 @@ Installed Python package containing the public SDK API, CLI package, node contra
 ai_canvas_sdk/
 |-- __init__.py        # public import surface and dynamic __version__
 |-- serialization.py   # pandas/protobuf conversion
-|-- cli.py             # sibling module; not the console-script target in practice
 |-- cli/               # console-script package and node testing commands
 |-- custom_node/       # public CustomNode contract and schema models
 `-- grpc/              # generated protobuf/gRPC Python files
@@ -22,7 +21,7 @@ ai_canvas_sdk/
 | --- | --- | --- |
 | Add public export | `__init__.py` | Keep `__all__` in sync with imports. |
 | Change node API | `custom_node/` | Update docs/examples if public shape changes. |
-| Change CLI behavior | `cli/` | Package import wins over sibling `cli.py`. |
+| Change CLI behavior | `cli/` | Console-script package; entry point is `__init__.py:main`. |
 | Change serialization | `serialization.py` | Check protobuf `PortData` fields and docs data-type claims. |
 | Change wire messages | `../proto/custom_node_service.proto` | Regenerate `grpc/` outputs after proto edits. |
 
@@ -38,7 +37,6 @@ ai_canvas_sdk/
 
 - Do not edit generated `grpc/` files directly.
 - Do not bypass `__all__` when adding or removing public root exports.
-- Do not treat `ai_canvas_sdk/cli.py` and `ai_canvas_sdk/cli/` as interchangeable without testing import resolution.
 - Do not move heavy runtime dependencies into optional extras unless root imports stop requiring them.
 
 ## LOCAL CHECKS
