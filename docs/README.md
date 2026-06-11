@@ -24,44 +24,12 @@ AI Canvas는 시각적 워크플로우 빌더를 통해 ML 파이프라인을 �
                                          └──────────────┘    └─────────────┘
 ```
 
-## 문서 구조
-
-### [Getting Started](./getting-started/)
-- [설치 가이드](./getting-started/installation.md)
-- [빠른 시작](./getting-started/quick-start.md)
-- [첫 번째 노드 만들기](./getting-started/first-node.md)
-
-### [핵심 개념](./concepts/)
-- [시스템 아키텍처](./concepts/architecture.md)
-- [데이터 타입 및 직렬화](./concepts/data-types.md)
-- [노드 생명주기](./concepts/lifecycle.md)
-
-### [개발 가이드](./guides/)
-- [기본 노드 개발](./guides/basic-node-development.md)
-- [고급 기능](./guides/advanced-features.md)
-- [테스트 가이드](./guides/testing.md)
-- [성능 최적화](./guides/performance-optimization.md)
-
-### [API 레퍼런스](./api-reference/)
-- [CustomNode 클래스](./api-reference/custom-node-class.md)
-- [NodeSchema](./api-reference/node-schema.md)
-- [직렬화 설정](./api-reference/serialization.md)
-
-### [예제 코드](./examples/)
-- [데이터 처리 노드](./examples/data-processing-node.py)
-- [ML 학습 노드](./examples/ml-training-node.py)
-- [API 연동 노드](./examples/api-integration-node.py)
-- [스트리밍 처리 노드](./examples/streaming-node.py)
-
-### [문제 해결](./troubleshooting/)
-- [FAQ 및 일반적인 문제](./troubleshooting/faq.md)
-
 ## 빠른 시작
 
 ### 1. 설치
 
 ```bash
-pip install ai-canvas-sdk
+pip install "git+https://github.com/AlgorithmLABS/ai-canvas-sdk"
 ```
 
 ### 2. 첫 번째 노드 생성
