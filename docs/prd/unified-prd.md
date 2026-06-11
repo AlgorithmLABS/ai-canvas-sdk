@@ -52,13 +52,13 @@ AI Canvas Custom Node SDK는 **개발자가 10분 내에 첫 번째 커스텀 �
 
 #### 시나리오 1: 빠른 프로토타이핑
 ```
-SDK 설치 → @simple_node 데코레이터 사용 → run --test → 즉시 확인
+SDK 설치 → @simple_node 데코레이터 사용 → ai-canvas-sdk test로 즉시 확인
 시간: < 10분, 복잡도: 매우 낮음
 ```
 
 #### 시나리오 2: 엔터프라이즈 배포
 ```
-CustomNode 클래스 상속 → 스키마 정의 → 단위 테스트 → package → register → 프로덕션 배포
+CustomNode 클래스 상속 → 스키마 정의 → 단위 테스트 → 운영 체크리스트에 따른 프로덕션 배포
 시간: 1-2일, 복잡도: 중간, 보안: 높음
 ```
 
@@ -85,7 +85,7 @@ CustomNode 클래스 상속 → 스키마 정의 → 단위 테스트 → packag
 - **스트리밍**: 대용량 데이터, 진행률, 로그
 
 #### **개발자 도구**
-- **CLI**: `init`, `run`, `test`, `validate`, `package`, `register`, `profile`, `publish`
+- **CLI**: 현재 구현된 범위는 `test` 명령과 `--version` 옵션이며, 나머지 CLI 확장은 향후 범위로 둔다
 - **IDE 통합**: VS Code Extension, 디버깅 지원
 - **템플릿**: HelloWorld, DataFilter, ML Training, API Integration
 
@@ -209,21 +209,12 @@ def run(self, inputs, parameters, ctx):
     return expensive_computation(inputs)
 ```
 
-#### **FR5: 포괄적인 CLI**
+#### **FR5: 기본 CLI**
 ```bash
-# 프로젝트 초기화
-ai-canvas-sdk init my-custom-node --template=ml-training
-
 # 개발 및 테스트
-ai-canvas-sdk validate my_node.py
-ai-canvas-sdk run my_node.py --input data.csv --params '{"threshold": 0.5}'
-ai-canvas-sdk test my_node.py --sample-data
-ai-canvas-sdk profile my_node.py --iterations 10
-
-# 배포
-ai-canvas-sdk package --nodes *.py --output my_nodes.zip --version 1.0.0
-ai-canvas-sdk register --package my_nodes.zip --server https://api.ai-canvas.io
-ai-canvas-sdk publish manifest.json
+ai-canvas-sdk test my_node.py --validate-only
+ai-canvas-sdk test my_node.py -i data.json -p '{"threshold": 0.5}' -o output.json -v
+ai-canvas-sdk --version
 ```
 
 ### 4.2 고급 기능 (Should Have)
@@ -758,77 +749,39 @@ class RobustNode(CustomNode):
 
 ### 8.1 프로젝트 관리
 
-```bash
-# 프로젝트 초기화
-ai-canvas-sdk init my-project
-ai-canvas-sdk init my-project --template=ml-training
-ai-canvas-sdk init my-project --template=data-processing
-ai-canvas-sdk init my-project --template=api-integration
-
-# 템플릿 목록
-ai-canvas-sdk templates list
-ai-canvas-sdk templates show ml-training
-```
+- 프로젝트 초기화: 표준화된 프로젝트 골격을 생성하고, 템플릿 선택을 통해 서로 다른 시작 구성을 제공한다.
+- 템플릿 관리: 템플릿 목록 조회와 상세 확인 기능으로 개발자가 적합한 시작점을 빠르게 선택할 수 있도록 지원한다.
 
 ### 8.2 개발 및 테스트
 
+- 노드 검증: 노드 정의와 스키마를 문서화된 절차에 따라 검증한다.
+- 로컬 실행: 실행 시에는 입력 데이터, 파라미터, 출력 경로, 상세 로그 옵션을 조합해 사용한다.
+- 단위 테스트: 구현된 `test` 명령으로 검증 전용 실행과 입출력 기반 실행을 지원한다.
+
 ```bash
-# 노드 검증
-ai-canvas-sdk validate my_node.py
-ai-canvas-sdk validate ./nodes/  # 디렉토리 전체
-
-# 로컬 실행
-ai-canvas-sdk run my_node.py
-ai-canvas-sdk run my_node.py --input data.csv
-ai-canvas-sdk run my_node.py --input '{"key": "value"}'
-ai-canvas-sdk run my_node.py --params '{"threshold": 0.8}'
-ai-canvas-sdk run my_node.py --test  # 테스트 모드
-
 # 단위 테스트
-ai-canvas-sdk test my_node.py
-ai-canvas-sdk test my_node.py --sample-data
-ai-canvas-sdk test my_node.py --coverage
+ai-canvas-sdk test my_node.py --validate-only
+ai-canvas-sdk test my_node.py -i input.json -p '{"threshold": 0.8}' -o output.json -v
 
-# 성능 프로파일링
-ai-canvas-sdk profile my_node.py --iterations 10
-ai-canvas-sdk profile my_node.py --memory-profile
-ai-canvas-sdk profile my_node.py --input large_data.csv
+# 버전 확인
+ai-canvas-sdk --version
 ```
 
 ### 8.3 패키징 및 배포
 
-```bash
-# 패키징
-ai-canvas-sdk package --nodes my_node.py
-ai-canvas-sdk package --nodes ./nodes/ --output my_nodes.zip
-ai-canvas-sdk package --nodes *.py --version 1.2.0 --author "My Team"
-
-# 등록 (개발 환경)
-ai-canvas-sdk register --package my_nodes.zip
-ai-canvas-sdk register --package my_nodes.zip --server https://dev.ai-canvas.io
-
-# 배포 (프로덕션)
-ai-canvas-sdk publish manifest.json
-ai-canvas-sdk publish manifest.json --environment production
-ai-canvas-sdk publish manifest.json --approve-security-scan
-```
+- 패키징: 패키징과 배포 절차는 릴리스 체크리스트와 운영 가이드를 따른다.
+- 등록(개발 환경): 배포 대상 등록은 플랫폼 운영 절차에 따라 수행한다.
+- 배포(프로덕션): 배포 승인 및 게시 단계는 운영 정책에 맞춰 관리한다.
 
 ### 8.4 유틸리티
 
 ```bash
 # 버전 및 환경 정보
 ai-canvas-sdk --version
-ai-canvas-sdk doctor  # 환경 진단
-ai-canvas-sdk test-connection  # 서버 연결 테스트
-
-# 문서화
-ai-canvas-sdk docs generate my_node.py
-ai-canvas-sdk docs serve  # 로컬 문서 서버
-
-# 로그 및 디버깅
-ai-canvas-sdk logs --node-id abc123
-ai-canvas-sdk logs --follow --level DEBUG
 ```
+
+- 문서화: 문서 생성과 로컬 문서 서버는 SDK API와 노드 예제를 자동으로 정리해 개발자 온보딩과 참조를 돕는다.
+- 로그 및 디버깅: 로그 조회와 실시간 추적 기능은 노드 실행 상태와 디버깅 흐름을 운영자가 확인할 수 있게 해준다.
 
 ## 9. 테스트 전략 및 수용 기준
 
@@ -843,7 +796,7 @@ ai-canvas-sdk logs --follow --level DEBUG
 #### **통합 테스트 (30%)**
 - gRPC 통신 (Execute/Stream)
 - 파일 I/O 및 공유 볼륨
-- CLI 명령어 전체 플로우
+- 현재 구현된 CLI 흐름(`test`, `--version`) 검증
 - 실행 제어 (취소/타임아웃)
 
 #### **E2E 테스트 (10%)**
@@ -910,7 +863,7 @@ class PerformanceTests:
 
 #### **A4: CLI 기능 완성도**
 ```
-✅ 모든 명령어 정상 동작
+✅ 현재 구현된 CLI 명령어(`test`, `--version`) 정상 동작
 ✅ 에러 메시지 명확성
 ✅ 진행률 표시 정확성
 ✅ 결과 출력 형식 일관성
@@ -976,14 +929,12 @@ class PerformanceTests:
 
 **Risk**: gRPC 스트리밍 복잡도, mTLS 설정
 
-#### **Week 5: CLI Tools & Developer Experience**
+#### **Week 5: Current CLI Surface & Developer Experience**
 **목표**: CLI 도구 및 개발자 경험 구현
 
 **Deliverables**:
-- [ ] 전체 CLI 명령어 구현 (`init`, `run`, `test`, `validate`, `package`, `register`, `profile`, `publish`)
-- [ ] 프로젝트 템플릿 시스템
-- [ ] 로컬 실행 환경
-- [ ] 성능 프로파일링 도구
+- [ ] 기본 CLI 범위 정리 및 `test`/`--version` 문서화
+- [ ] CLI 향후 확장 명세 정리
 - [ ] 에러 메시지 및 제안사항 시스템
 
 **Risk**: CLI UX 복잡도, 크로스 플랫폼 호환성

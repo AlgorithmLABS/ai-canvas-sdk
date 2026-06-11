@@ -153,6 +153,10 @@ ai-canvas-sdk test hello_world.py -i data.json -p '{"threshold": 0.5}' -o output
 - 선택적 mypy로 정적 타입 점검
 - 런타임 타입 불일치 방지
 
+## 배포/등록
+
+이 저장소의 CLI는 현재 로컬 노드 검증용 `test` 명령과 버전 출력만 제공합니다.
+배포/등록 작업은 별도 플랫폼 도구에서 수행합니다.
 
 ## 실행 제어(취소/타임아웃/멱등성)
 
@@ -167,3 +171,6 @@ ai-canvas-sdk test hello_world.py -i data.json -p '{"threshold": 0.5}' -o output
 - 런타임과 노드 이미지는 서명/스캔 정책을 따릅니다.
 
 
+---
+
+**다음 단계**: [설치 가이드](./getting-started/installation.md)에서 개발 환경을 설정해보세요.
