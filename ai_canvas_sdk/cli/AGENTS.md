@@ -40,7 +40,6 @@ cli/
 
 ## ANTI-PATTERNS
 
-- Do not add command behavior to root `ai_canvas_sdk/cli.py` unless intentionally changing the package/module split.
 - Do not make imported `CustomNode` subclasses discoverable; loader currently filters to classes defined in the loaded file.
 - Do not print local test logs to stdout from `TestNodeContext`; it deliberately uses stderr.
 - Do not assume placeholders `health.py`, `list_nodes.py`, and `register.py` contain working commands.
