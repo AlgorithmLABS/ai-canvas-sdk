@@ -17,6 +17,9 @@ class CustomNode(ABC):
 
     """
 
+    # 이 노드가 요구하는 동적 secret 이름 목록 (선택적 override)
+    required_secrets: list[str] = []
+
     @abstractmethod
     def get_schema(self) -> NodeSchema:
         """
@@ -85,6 +88,75 @@ class CustomNode(ABC):
         pass
 
 ```
+
+## **클래스 속성**
+
+### **`required_secrets` (선택적)**
+
+노드가 실행 시 필요로 하는 **동적 secret 이름 목록**입니다. API 키·토큰처럼 코드에 하드코딩하면 안 되는 값을, 플랫폼 관리자가 코드 배포 없이 Secret Store에 등록·교체할 수 있게 하는 메커니즘입니다.
+
+```python
+class WeatherNode(CustomNode):
+    # 이 노드가 요구하는 secret 이름을 선언한다
+    required_secrets = ["weather_api_key"]
+```
+
+- **타입**: `list[str]` (기본값 `[]`)
+- **선언 = 정적 추출**: 노드 등록 시 SDK가 **소스 코드를 실행하지 않고 정적(AST)으로** `required_secrets` 리터럴을 추출해 노드 메타데이터에 저장합니다. 따라서 반드시 **클래스 속성 리터럴**(문자열 리스트/튜플)이어야 하며, 동적 계산식이나 인스턴스 속성으로 만들면 추출되지 않습니다.
+- **주입 = 선언된 것만**: 실행 시점에 플랫폼은 여기에 선언된 이름의 secret **값만** 컨텍스트로 주입합니다. 선언하지 않은 secret은 `ctx.get_secret()`으로 접근할 수 없습니다.
+- override 시에는 **새 리스트를 할당**하세요. 공유 기본값을 `append` 등으로 in-place 변경하지 마세요.
+
+> secret **값**은 관리자가 별도로 Secret Store에 등록합니다. 노드 코드에는 **이름만** 선언합니다. 선언 → 등록 → 소비 전체 흐름은 [Secret 사용 가이드](../guides/using-secrets.md)를 참고하세요.
+
+### **`NodeContext.get_secret(name)`**
+
+`run()`의 `ctx` 안에서 선언한 secret 값을 가져옵니다.
+
+```python
+def get_secret(self, name: str) -> str:
+    """노드가 선언한 secret 값을 반환.
+
+    Args:
+        name: `required_secrets` 에 선언한 secret 이름
+
+    Returns:
+        str: secret 값
+
+    Raises:
+        SecretNotAvailableError: 해당 이름의 secret 이 주입되어 있지 않은 경우
+    """
+```
+
+**예시**:
+
+```python
+from ai_canvas_sdk import CustomNode, NodeContext
+
+class WeatherNode(CustomNode):
+    required_secrets = ["weather_api_key"]
+
+    def run(self, inputs, parameters, ctx: NodeContext) -> dict:
+        api_key = ctx.get_secret("weather_api_key")  # 선언했고 등록된 경우에만 성공
+        # ... api_key 로 외부 API 호출 ...
+        return {"output_data": result}
+```
+
+- **반환은 항상 `str`** 입니다.
+- `required_secrets`에 선언하지 않았거나(미주입), 관리자가 아직 Secret Store에 등록하지 않은 경우 `SecretNotAvailableError`가 발생합니다.
+- **secret 값을 로그로 출력하지 마세요.** `ctx.log_info(api_key)` 같은 호출은 값이 실행 로그에 남아 유출됩니다.
+
+### **`SecretNotAvailableError`**
+
+```python
+from ai_canvas_sdk import SecretNotAvailableError
+```
+
+노드가 요청한 secret이 실행 컨텍스트에 주입되어 있지 않을 때 `ctx.get_secret(name)`이 던지는 예외입니다(`CustomNodeError` 하위). 예외 메시지에는 secret **이름만** 포함되고 값은 포함되지 않습니다.
+
+| 발생 원인 | 해결 |
+|---|---|
+| `required_secrets`에 이름을 선언하지 않음 | 클래스 속성 `required_secrets` 에 해당 이름 추가 후 재등록 |
+| 관리자가 Secret Store에 값을 아직 등록하지 않음 | 플랫폼 관리자에게 해당 secret 등록 요청 |
 
 ## **추상 메서드 (필수 구현)**
 
