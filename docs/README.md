@@ -169,6 +169,12 @@ ai-canvas-sdk test hello_world.py -i data.json -p '{"threshold": 0.5}' -o output
 - 모든 gRPC 통신은 mTLS를 사용합니다.
 - 대용량 데이터는 공유 볼륨에서 최소 권한(경로 ACL/권한)으로 접근합니다.
 - 런타임과 노드 이미지는 서명/스캔 정책을 따릅니다.
+- API 키·토큰 등 비밀 값은 노드 코드에 하드코딩하지 말고 secret으로 선언해 사용합니다 — [Secret 사용 가이드](./guides/using-secrets.md) 참고.
+
+## 가이드
+
+- [기본 노드 개발 가이드](./guides/basic-node-development.md) — 핵심 패턴과 모범 사례
+- [Secret 사용 가이드](./guides/using-secrets.md) — API 키·토큰을 안전하게 다루는 방법(`required_secrets` / `ctx.get_secret`)
 
 
 ---
