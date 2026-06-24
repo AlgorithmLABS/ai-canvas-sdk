@@ -24,6 +24,7 @@ class TestNodeContext(NodeContext):
         node_id: str | None = None,
         user_id: str | None = None,
         team_id: str | None = None,
+        secrets: dict[str, str] | None = None,
         verbose: bool = True,
     ):
         self._verbose = verbose
@@ -51,6 +52,7 @@ class TestNodeContext(NodeContext):
             node_id=node_id or "test-node",
             user_id=user_id,
             team_id=team_id,
+            secrets=secrets,
             log_callback=log_callback,
             progress_callback=progress_callback,
             cancel_check_callback=cancel_check_callback,
@@ -117,6 +119,7 @@ def create_test_context(
     verbose: bool = True,
     execution_id: str | None = None,
     node_id: str | None = None,
+    secrets: dict[str, str] | None = None,
 ) -> TestNodeContext:
     """
     테스트용 NodeContext를 생성합니다.
@@ -125,6 +128,7 @@ def create_test_context(
         verbose: 로그/진행률을 터미널에 출력할지 여부
         execution_id: 실행 ID (기본값: 자동 생성)
         node_id: 노드 ID (기본값: "test-node")
+        secrets: 노드에 주입할 secret (이름 -> 값). ctx.get_secret(name) 으로 소비.
 
     Returns:
         TestNodeContext 인스턴스
@@ -133,4 +137,5 @@ def create_test_context(
         verbose=verbose,
         execution_id=execution_id,
         node_id=node_id,
+        secrets=secrets,
     )

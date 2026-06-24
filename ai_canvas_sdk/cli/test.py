@@ -80,6 +80,31 @@ def _parse_params(params_str: str | None) -> dict[str, Any]:
         raise ValueError(f"파라미터 JSON 파싱 실패: {e}") from e
 
 
+def _parse_secrets(secret_args: list[str] | None) -> dict[str, str]:
+    """`--secret KEY=VALUE` 인자 목록을 secret dict 로 파싱합니다.
+
+    값에 '=' 가 포함될 수 있으므로 첫 '=' 기준으로만 분리합니다.
+    빈 key/value 또는 '=' 가 없는 입력은 ValueError 를 던집니다.
+    """
+    if not secret_args:
+        return {}
+
+    secrets: dict[str, str] = {}
+    for item in secret_args:
+        if "=" not in item:
+            raise ValueError(f"secret 형식이 잘못되었습니다 (KEY=VALUE 필요): {item!r}")
+        key, value = item.split("=", 1)
+        key = key.strip()
+        if not key:
+            raise ValueError(f"secret 이름이 비어 있습니다: {item!r}")
+        if not value:
+            raise ValueError(f"secret '{key}' 의 값이 비어 있습니다.")
+        if key in secrets:
+            raise ValueError(f"중복된 secret 이름이 존재합니다: {key!r}")
+        secrets[key] = value
+    return secrets
+
+
 def _save_output(output_path: str, result: dict[str, Any]) -> None:
     """결과를 파일로 저장합니다."""
     path = Path(output_path)
@@ -147,6 +172,7 @@ def run_test(args: argparse.Namespace) -> int:
     params_str = getattr(args, "params", None)
     output_file = getattr(args, "output", None)
     verbose = getattr(args, "verbose", False)
+    secret_args = getattr(args, "secret", None)
 
     # 1. 노드 클래스 로드
     print(f"Loading node from: {node_file}")
@@ -217,8 +243,18 @@ def run_test(args: argparse.Namespace) -> int:
     if params:
         print(f"\nParameters: {json.dumps(params, ensure_ascii=False)}")
 
+    # secret 파싱 (값은 출력하지 않고 이름만 노출)
+    try:
+        secrets = _parse_secrets(secret_args)
+    except ValueError as e:
+        print(f"\n[ERROR] {e}", file=sys.stderr)
+        return 1
+
+    if secrets:
+        print(f"\nSecrets: {len(secrets)}개 주입 ({', '.join(secrets)})")
+
     # 컨텍스트 생성
-    ctx = create_test_context(verbose=True, node_id=schema.name)
+    ctx = create_test_context(verbose=True, node_id=schema.name, secrets=secrets)
 
     # 노드 실행
     print("\n" + "=" * 50)
@@ -300,6 +336,14 @@ def setup_parser(subparsers: argparse._SubParsersAction) -> None:
     parser.add_argument(
         "--params", "-p",
         help='파라미터 JSON 문자열 (예: \'{"message": "Hello"}\')',
+    )
+
+    parser.add_argument(
+        "--secret", "-s",
+        action="append",
+        metavar="KEY=VALUE",
+        help="노드에 주입할 secret (예: -s api_key=abc123). 여러 번 지정 가능. "
+        "required_secrets 에 선언한 노드를 로컬에서 검증할 때 사용",
     )
 
     parser.add_argument(
