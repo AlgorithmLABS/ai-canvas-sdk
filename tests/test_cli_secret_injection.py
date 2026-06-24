@@ -43,6 +43,11 @@ def test_parse_secrets_empty_value_raises():
         _parse_secrets(["key="])
 
 
+def test_parse_secrets_duplicate_key_raises():
+    with pytest.raises(ValueError):
+        _parse_secrets(["api_key=abc", "api_key=xyz"])
+
+
 # --- create_test_context secret 주입 ----------------------------------------
 
 def test_create_test_context_injects_secret():
@@ -105,11 +110,12 @@ def test_cli_injects_secret_end_to_end(tmp_path, capsys):
 
     exit_code = main(["test", str(node_file), "-s", f"api_key={secret_value}"])
 
-    out = capsys.readouterr().out
+    captured = capsys.readouterr()
     assert exit_code == 0
-    # 이름은 노출되지만 값은 stdout 에 절대 노출되지 않아야 한다
-    assert "api_key" in out
-    assert secret_value not in out
+    # 이름은 노출되지만 값은 stdout/stderr 에 절대 노출되지 않아야 한다
+    assert "api_key" in captured.out
+    assert secret_value not in captured.out
+    assert secret_value not in captured.err
 
 
 def test_cli_without_secret_fails_for_required_secret_node(tmp_path):

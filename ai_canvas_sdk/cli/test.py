@@ -99,6 +99,8 @@ def _parse_secrets(secret_args: list[str] | None) -> dict[str, str]:
             raise ValueError(f"secret 이름이 비어 있습니다: {item!r}")
         if not value:
             raise ValueError(f"secret '{key}' 의 값이 비어 있습니다.")
+        if key in secrets:
+            raise ValueError(f"중복된 secret 이름이 존재합니다: {key!r}")
         secrets[key] = value
     return secrets
 
