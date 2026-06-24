@@ -133,9 +133,19 @@ class WeatherNode(CustomNode):
 
 ## 로컬 테스트
 
-> **주의**: `ai-canvas-sdk test` CLI는 현재 secret을 주입하지 않습니다. 따라서 `get_secret()`을 사용하는 노드를 CLI로 그대로 실행하면 `SecretNotAvailableError`가 발생합니다.
+`get_secret()`을 쓰는 노드는 `ai-canvas-sdk test` CLI의 `--secret`/`-s KEY=VALUE` 옵션으로 secret을 주입해 검증합니다(여러 번 지정 가능).
 
-`get_secret()`을 쓰는 노드를 로컬에서 검증하려면, `secrets`를 직접 채운 `NodeContext`를 만들어 `run()`을 호출하세요.
+```bash
+ai-canvas-sdk test weather_node.py -s weather_api_key=local-test-key
+```
+
+secret을 주입하지 않고 `get_secret()` 노드를 실행하면 `SecretNotAvailableError`가 발생합니다. 테스트용 키는 코드에 커밋하지 말고 셸 환경 변수 등에서 읽어 전달하는 것을 권장합니다.
+
+```bash
+ai-canvas-sdk test weather_node.py -s "weather_api_key=$WEATHER_API_KEY"
+```
+
+CLI 없이 코드에서 직접 검증하려면, `secrets`를 채운 `NodeContext`를 만들어 `run()`을 호출하면 됩니다.
 
 ```python
 from ai_canvas_sdk import NodeContext
@@ -157,8 +167,6 @@ result = node.run(
 print(result["weather"])
 ```
 
-테스트용 키는 코드에 커밋하지 말고 환경 변수 등에서 읽어 주입하는 것을 권장합니다.
-
 ## 보안 주의사항
 
 - **secret 값을 로그로 출력하지 마세요.** `ctx.log_info(api_key)`, `print(api_key)` 등은 값이 실행 로그에 남아 유출됩니다. 로그에는 secret **이름**만 남기세요.
@@ -176,7 +184,7 @@ print(result["weather"])
 | `required_secrets`에 이름을 선언하지 않음 | 클래스 속성 `required_secrets`에 이름 추가 후 노드 재등록 |
 | `required_secrets`를 리터럴이 아닌 동적/인스턴스 속성으로 작성 | 클래스 속성 리터럴(`required_secrets = ["..."]`)로 변경 후 재등록 |
 | 관리자가 Secret Store에 아직 등록하지 않음 | 플랫폼 관리자에게 해당 secret 등록 요청 |
-| 로컬 CLI(`ai-canvas-sdk test`)로 실행 | 위 [로컬 테스트](#로컬-테스트) 방식으로 `NodeContext(secrets=...)`를 직접 구성 |
+| 로컬 CLI(`ai-canvas-sdk test`)로 실행 시 미주입 | `--secret KEY=VALUE` 로 주입 (위 [로컬 테스트](#로컬-테스트) 참고) |
 
 ---
 

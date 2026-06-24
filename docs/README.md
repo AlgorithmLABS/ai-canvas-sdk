@@ -86,6 +86,7 @@ ai-canvas-sdk test hello_world.py
 | `--validate-only` | | 스키마 검증만 수행, 실행하지 않음 |
 | `--input` | `-i` | 입력 데이터 파일 경로 (JSON 또는 CSV) |
 | `--params` | `-p` | 파라미터 JSON 문자열 |
+| `--secret` | `-s` | 노드에 주입할 secret `KEY=VALUE` (여러 번 지정 가능) |
 | `--output` | `-o` | 결과를 저장할 파일 경로 (JSON 또는 CSV) |
 | `--verbose` | `-v` | 상세 출력 모드 |
 
@@ -104,6 +105,11 @@ ai-canvas-sdk test hello_world.py -i input_data.json
 **파라미터 전달:**
 ```bash
 ai-canvas-sdk test hello_world.py -p '{"message": "Hello"}'
+```
+
+**secret 주입 (`required_secrets` 노드 검증):**
+```bash
+ai-canvas-sdk test weather_node.py -s weather_api_key=local-test-key
 ```
 
 **결과를 파일로 저장:**
