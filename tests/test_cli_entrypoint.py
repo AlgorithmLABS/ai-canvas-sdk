@@ -79,6 +79,8 @@ def test_docs_do_not_overstate_cli_surface() -> None:
         "-i",
         "--params",
         "-p",
+        "--secret",
+        "-s",
         "--output",
         "-o",
         "--verbose",
