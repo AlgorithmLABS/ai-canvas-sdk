@@ -16,6 +16,7 @@ import json
 import shutil
 import subprocess
 import urllib.error
+import urllib.request
 from pathlib import Path
 
 import pytest
@@ -116,7 +117,7 @@ def test_parse_req_txt_absent(tmp_path):
 # --------------------------------------------------------------------------- #
 def _git(repo: Path, *args: str) -> str:
     out = subprocess.run(
-        ["git", "-C", str(repo), "-c", "user.email=t@t", "-c", "user.name=t", *args],
+        ["git", "-C", str(repo), "-c", "user.email=t@t", "-c", "user.name=t", "-c", "commit.gpgsign=false", "-c", "tag.gpgsign=false", *args],
         capture_output=True,
         text=True,
     )
@@ -430,3 +431,81 @@ def test_extract_node_name_positional(tmp_path):
         encoding="utf-8",
     )
     assert reg.extract_node_name(folder / "main.py") == "pos_node"
+
+# --------------------------------------------------------------------------- #
+# Gemini review fixes: base_url scheme validation, typed HTTP errors,
+# register-time 401 reauth retry, non-JSON 200 guard.
+# --------------------------------------------------------------------------- #
+def test_exit_code_invalid_base_url_scheme():
+    # http(s):// 스킴이 없으면 urlopen ValueError traceback 대신 명확한 에러로 조기 종료(exit 2).
+    assert reg.run_register(_base_args(base_url="api.example.com")) == 2
+
+
+def test_register_node_http_error_carries_status(fake_http):
+    fake_http.add(reg.REGISTER_PATH, 422, {"detail": "bad"})
+    with pytest.raises(reg.RegisterHTTPError) as ei:
+        reg.register_node("http://api", "tok", "src", [])
+    assert ei.value.status == 422
+    assert isinstance(ei.value, reg.RegisterError)
+
+
+def test_register_one_folder_reauths_on_register_401(tmp_path, monkeypatch):
+    # 앞선 노드의 긴 폴링 동안 토큰 만료 → register_node 가 401 → reauth 후 1회 재시도해 성공.
+    folder = tmp_path / "node_a"
+    _write_node(folder, "node_a")
+    calls = {"register": 0, "reauth": 0}
+
+    def fake_register_node(base_url, token, source_code, dependencies):
+        calls["register"] += 1
+        if calls["register"] == 1:
+            raise reg.RegisterHTTPError("등록 요청 실패 (HTTP 401)", 401, {"detail": "expired"})
+        return "task-1"
+
+    def reauth():
+        calls["reauth"] += 1
+        return "fresh"
+
+    monkeypatch.setattr(reg, "register_node", fake_register_node)
+    monkeypatch.setattr(reg, "poll_task", lambda *a, **k: "completed")
+    reg.register_one_folder(
+        folder, base_url="http://api", get_token=lambda: "stale", reauth=reauth, interval=0, timeout=1
+    )
+    assert calls["register"] == 2
+    assert calls["reauth"] == 1
+
+
+def test_register_one_folder_non_401_http_error_propagates(tmp_path, monkeypatch):
+    folder = tmp_path / "node_a"
+    _write_node(folder, "node_a")
+
+    def fake_register_node(*a, **k):
+        raise reg.RegisterHTTPError("등록 요청 실패 (HTTP 500)", 500, {})
+
+    monkeypatch.setattr(reg, "register_node", fake_register_node)
+    monkeypatch.setattr(reg, "poll_task", lambda *a, **k: "completed")
+    with pytest.raises(reg.RegisterHTTPError):
+        reg.register_one_folder(
+            folder, base_url="http://api", get_token=lambda: "t", reauth=lambda: "t", interval=0, timeout=1
+        )
+
+
+def test_send_non_json_200_preserved_as_detail(monkeypatch):
+    class _RawResp:
+        status = 200
+
+        def read(self):
+            return b"<html>oops</html>"
+
+        def getcode(self):
+            return 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    monkeypatch.setattr("urllib.request.urlopen", lambda *a, **k: _RawResp())
+    status, body = reg._send(urllib.request.Request("http://api"))
+    assert status == 200
+    assert body == {"detail": "<html>oops</html>"}
