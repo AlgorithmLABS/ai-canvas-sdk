@@ -61,8 +61,10 @@ def test_all_markdown_cli_command_examples_match_registered_surface(capsys) -> N
     docs = _read_all_docs_markdown()
 
     assert "test" in captured
+    assert "register" in captured
+    # docs 는 등록된 서브커맨드(test, register) 외의 `ai-canvas-sdk <subcommand>` 예시를 가져선 안 된다.
     assert not re.search(
-        r"ai-canvas-sdk\s+(?!test\b)[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*\b",
+        r"ai-canvas-sdk\s+(?!(?:test|register)\b)[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*\b",
         docs,
     )
     assert "--sample-data" not in docs
