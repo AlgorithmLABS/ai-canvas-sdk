@@ -61,6 +61,11 @@ Examples:
 
     setup_test_parser(subparsers)
 
+    # register 커맨드 등록 (CI push 경로 노드 등록)
+    from ai_canvas_sdk.cli.register import setup_parser as setup_register_parser
+
+    setup_register_parser(subparsers)
+
     # 인자 파싱
     args = parser.parse_args(argv)
 
