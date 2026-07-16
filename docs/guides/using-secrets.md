@@ -188,4 +188,6 @@ print(result["weather"])
 
 ---
 
+**실전 예시**: [공공 OpenAPI 조회 노드](../examples/public-data-node.py) — 공공데이터포털(data.go.kr) API 키를 secret으로 주입해 외부 데이터를 가져오는 완성 예제.
+
 **관련 문서**: [CustomNode 클래스 API 레퍼런스](../api-reference/custom-node-class.md) · [기본 노드 개발 가이드](./basic-node-development.md)

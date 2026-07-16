@@ -161,8 +161,12 @@ ai-canvas-sdk test hello_world.py -i data.json -p '{"threshold": 0.5}' -o output
 
 ## 배포/등록
 
-이 저장소의 CLI는 현재 로컬 노드 검증용 `test` 명령과 버전 출력만 제공합니다.
-배포/등록 작업은 별도 플랫폼 도구에서 수행합니다.
+이 저장소의 CLI는 두 개의 서브커맨드를 제공합니다.
+
+- `ai-canvas-sdk test <node_file.py>`: 노드를 로컬에서 로드·검증·실행합니다.
+- `ai-canvas-sdk register`: 커스텀 노드를 backend에 등록합니다(주로 CI push 경로에서 사용).
+
+CI를 통한 등록 설정은 [CI 가이드](./ci/README.md)를 참고하세요.
 
 ## 실행 제어(취소/타임아웃/멱등성)
 
