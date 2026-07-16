@@ -60,48 +60,49 @@ def run(self, inputs, parameters, ctx: NodeContext):
 **해결 방법**:
 
 ```python
-# 방법 1: 노드에 timeout 설정 추가
-@timeout(seconds=600)  # 10분으로 연장
+# 방법 1: 진행률 보고 + 협조적 취소로 대응
+#   실행 시간 제한 자체는 플랫폼 정책으로 관리됩니다. 노드가 스스로 timeout 을
+#   늘리는 데코레이터(@timeout 등)는 존재하지 않습니다. 오래 걸리는 작업은
+#   ctx.progress() 로 진행률을 자주 보고하고 ctx.is_cancelled() 로 취소에 협조하세요.
 class LongRunningNode(CustomNode):
-    def run(self, inputs, parameters, ctx: NodeContext):
-        # 오래 걸리는 작업
-        pass
+    def run(self, inputs, parameters, ctx: NodeContext) -> dict:
+        steps = self.plan_steps(inputs)
+        for idx, step in enumerate(steps):
+            if ctx.is_cancelled():
+                raise RuntimeError("실행이 취소되었습니다")
+            self.run_step(step)
+            ctx.progress((idx + 1) / len(steps))
+        return {"output_data": self.collect_result()}
 
-# 방법 2: 진행 상황 업데이트
+# 방법 2: 단계별 진행 상황 보고 (ctx.progress 사용)
 class ProgressiveNode(CustomNode):
-    def run(self, inputs, parameters, ctx: NodeContext):
-        progress = self.get_progress_tracker()
-        
-        progress.set_total_steps(5)
-        
-        # 단계별 진행 상황 전송
-        progress.advance("데이터 로딩...")
+    def run(self, inputs, parameters, ctx: NodeContext) -> dict:
+        ctx.log_info("데이터 로딩...")
         data = self.load_data(inputs)
-        
-        progress.advance("전처리 중...")
-        clean_data = self.preprocess(data)
-        
-        progress.advance("분석 중...")
-        results = self.analyze(clean_data)
-        
-        progress.advance("완료")
-        return {'results': results}
+        ctx.progress(0.33)
 
-# 방법 3: 작업 분할
+        ctx.log_info("전처리 중...")
+        clean_data = self.preprocess(data)
+        ctx.progress(0.66)
+
+        ctx.log_info("분석 중...")
+        results = self.analyze(clean_data)
+        ctx.progress(1.0)
+
+        return {"results": results}
+
+# 방법 3: 작업 분할 + 청크별 진행률 보고
 class ChunkedProcessingNode(CustomNode):
-    def run(self, inputs, parameters, ctx: NodeContext):
-        large_task = inputs['large_dataset']
-        
-        # 작은 단위로 분할 처리
+    def run(self, inputs, parameters, ctx: NodeContext) -> dict:
+        large_task = inputs["large_dataset"]
+
+        chunks = self.split_into_chunks(large_task)
         results = []
-        for chunk in self.split_into_chunks(large_task):
-            chunk_result = self.process_chunk(chunk)
-            results.append(chunk_result)
-            
-            # 중간 결과를 즉시 전송 (선택사항)
-            self.send_intermediate_result(chunk_result)
-        
-        return {'final_result': self.combine_results(results)}
+        for idx, chunk in enumerate(chunks):
+            results.append(self.process_chunk(chunk))
+            ctx.progress((idx + 1) / len(chunks))  # 중간결과 스트리밍 API 는 없습니다
+
+        return {"final_result": self.combine_results(results)}
 ```
 
 ---
@@ -204,7 +205,7 @@ class ModelHandler:
         return 'generic'
 
 # 해결 방법 2: 에러 핸들링 강화
-def execute(self, inputs, parameters):
+def run(self, inputs, parameters, ctx: NodeContext) -> dict:
     try:
         model = inputs['trained_model']
         test_data = inputs['test_data']
@@ -277,7 +278,7 @@ def fix_dataframe_encoding(df: pd.DataFrame) -> pd.DataFrame:
 
 # 사용 예시
 class TextProcessingNode(CustomNode):
-    def execute(self, inputs, parameters):
+    def run(self, inputs, parameters, ctx: NodeContext) -> dict:
         df = inputs['text_data']
         
         # 인코딩 문제 수정

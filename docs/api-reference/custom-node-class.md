@@ -160,7 +160,9 @@ from ai_canvas_sdk import SecretNotAvailableError
 
 ## **추상 메서드 (필수 구현)**
 
-### **`get_schema()` (정적 메서드)**
+### **`get_schema()`**
+
+> 이 메서드는 **인스턴스 메서드**입니다(`self` 인자를 받으며 `@staticmethod` 가 아닙니다).
 
 노드의 메타데이터를 정의합니다.
 
@@ -197,7 +199,7 @@ class NodeSchema:
 
 ```python
 @abstractmethod
-def get_schema() -> NodeSchema:
+def get_schema(self) -> NodeSchema:
     """노드 스키마 정의
 
     Returns:
@@ -247,7 +249,7 @@ def get_schema() -> NodeSchema:
 **예시**:
 
 ```python
-def get_schema() -> NodeSchema:
+def get_schema(self) -> NodeSchema:
     return NodeSchema(
             name="HelloNode",
             data=NodeData(
@@ -291,23 +293,23 @@ def get_schema() -> NodeSchema:
 노드의 실제 실행 로직을 구현합니다.
 
 ```python
-def run(self, input: PortType, parameters: Dict[str, Any], ctx: NodeContext) -> tuple[PortType,Any]:
+def run(self, inputs: dict, parameters: dict, ctx: NodeContext) -> dict:
     """노드 실행 메서드
 
     Args:
-        input: 입력 포트 타입
+        inputs: 입력 포트 데이터 (포트 label → 값 dict, 값은 주로 pandas.DataFrame)
         parameters: 사용자 설정 파라미터
             - key: 파라미터 이름 (str)
             - value: 파라미터 값 (Any)
         ctx: 실행 컨텍스트(NodeContext)
-            - log_info/warn/error, progress, emit(스트리밍), metrics, cancel_requested
+            - log_debug/info/warning/error/critical, progress(0.0~1.0), is_cancelled(), get_secret(name)
 
     Returns:
-         tuple[PortType,Any]: 출력 포트 타입
+         dict: 출력 포트 label 을 키로 하는 결과 dict
 
     Raises:
         ValueError: 입력 데이터가 유효하지 않은 경우
-        NodeExecutionError: 실행 중 오류 발생 시
+        Exception: 실행 중 오류 발생 시
     """
     pass
 
@@ -381,159 +383,41 @@ def validate(self, inputs: Dict[str, Any], parameters: Dict[str, Any]) -> None:
 
 ```
 
-### **`cleanup()`**
+### **`cleanup()` 등 기타 훅**
 
-리소스 정리를 수행합니다.
+현재 SDK가 보장하는 실행 훅은 `get_schema()`(필수), `run()`(필수), `validate()`(선택)뿐입니다. 그 밖의 정리/캐싱/타임아웃은 노드 API가 아니라 **플랫폼 런타임의 책임**입니다.
 
-```python
-def cleanup(self) -> None:
-    """리소스 정리 (선택적 구현)
+- **리소스 정리**: 파일 핸들·네트워크 연결 등은 `run()` 내부에서 `try/finally`로 직접 정리하세요. SDK가 자동으로 호출하는 `cleanup()` 훅은 없습니다.
+- **타임아웃/취소**: 플랫폼이 gRPC로 관리하며, 노드는 `ctx.is_cancelled()`로만 협조적으로 확인합니다. `@timeout`/`@cache_results` 같은 데코레이터는 존재하지 않습니다.
 
-    노드 실행 완료 후 또는 오류 발생 시 호출됩니다.
-    파일 핸들, 네트워크 연결 등을 정리할 때 사용합니다.
-    """
-    pass
+## **로깅·진행률·취소 (NodeContext)**
 
-```
-
-**예시**:
+로깅·진행률·취소 확인은 노드 자체 메서드가 아니라 **`run()`에 전달되는 `ctx`(NodeContext)**로만 수행합니다.
 
 ```python
-def cleanup(self) -> None:
-    # 임시 파일 삭제
-    if hasattr(self, 'temp_files'):
-        for temp_file in self.temp_files:
-            try:
-                os.remove(temp_file)
-            except OSError:
-                pass
-
-    # 네트워크 연결 종료
-    if hasattr(self, 'connection'):
-        self.connection.close()
-
+def run(self, inputs: dict, parameters: dict, ctx: NodeContext) -> dict:
+    ctx.log_info("처리 시작")          # log_debug/info/warning/error/critical(message)
+    ctx.progress(0.5)                  # 0.0 ~ 1.0
+    if ctx.is_cancelled():             # 협조적 취소 확인
+        raise RuntimeError("실행이 취소되었습니다")
+    ...
 ```
 
-### **`log_info()`, `log_warning()`, `log_error()`**
-
-구조화된 로깅을 수행합니다.
-
-```python
-def log_info(self, message: str, extra: Dict[str, Any] = None) -> None:
-    """정보 로그 기록"""
-
-def log_warning(self, message: str, extra: Dict[str, Any] = None) -> None:
-    """경고 로그 기록"""
-
-def log_error(self, message: str, extra: Dict[str, Any] = None) -> None:
-    """에러 로그 기록"""
-
-```
-
-**사용 예시**:
-
-```python
-def execute(self, inputs, parameters):
-    self.log_info("노드 실행 시작", {
-        'input_size': len(inputs.get('data', [])),
-        'parameters': parameters
-    })
-
-    try:
-        result = self.process_data(inputs, parameters)
-        self.log_info("처리 완료", {'output_size': len(result)})
-        return result
-
-    except Exception as e:
-        self.log_error("처리 실패", {
-            'error_type': type(e).__name__,
-            'error_message': str(e)
-        })
-        raise
-
-```
-
-## **데코레이터**
-
-### **`@timeout(seconds)`**
-
-실행 시간 제한을 설정합니다.
-
-```python
-from ai_canvas_sdk.decorators import timeout
-
-@timeout(seconds=300)
-class LongRunningNode(CustomNode):
-    def execute(self, inputs, parameters):
-        # 최대 5분 실행
-        time.sleep(600)  # TimeoutError 발생
-        return {'result': 'done'}
-
-```
-
-### **`@cache_results(ttl_seconds)`**
-
-결과를 캐시합니다.
-
-```python
-from ai_canvas_sdk.decorators import cache_results
-
-@cache_results(ttl_seconds=3600)  # 1시간 캐시
-class CachedNode(CustomNode):
-    def execute(self, inputs, parameters):
-        # 동일한 입력에 대해서는 캐시된 결과 반환
-        expensive_result = self.expensive_computation(inputs)
-        return {'result': expensive_result}
-
-```
+- `ctx.log_*(message)`는 **문자열 인자 하나**만 받습니다(`extra=` 같은 인자는 없습니다).
+- 진행률 `ctx.progress(pct)`의 `pct`가 0.0~1.0 범위를 벗어나면 `ValueError`가 발생합니다.
 
 ## **예외 클래스**
 
-### **`NodeException`**
-
-노드 실행 관련 기본 예외입니다.
+SDK가 제공하는 예외는 두 가지뿐입니다.
 
 ```python
-class NodeException(Exception):
-    def __init__(self, message: str, error_type: str = None,
-                 retryable: bool = False, suggestions: List[str] = None):
-        super().__init__(message)
-        self.error_type = error_type
-        self.retryable = retryable
-        self.suggestions = suggestions or []
-
+from ai_canvas_sdk import CustomNodeError, SecretNotAvailableError
 ```
 
-**사용 예시**:
+- **`CustomNodeError`**: 커스텀 노드 SDK의 기본 예외입니다. 직접 정의한 예외 타입이 필요하면 이 클래스를 상속하세요.
+- **`SecretNotAvailableError`** (`CustomNodeError` 하위): `ctx.get_secret(name)`이 선언/주입되지 않은 secret에 대해 던지는 예외입니다.
 
-```python
-def execute(self, inputs, parameters):
-    if 'required_data' not in inputs:
-        raise NodeException(
-            message="필수 입력 데이터가 없습니다",
-            error_type="MISSING_INPUT",
-            suggestions=["'required_data' 포트를 연결해주세요"]
-        )
-
-```
-
-### **기타 예외들**
-
-```python
-class DataValidationError(NodeException):
-    """데이터 검증 실패"""
-    pass
-
-class ResourceError(NodeException):
-    """리소스 부족"""
-    def __init__(self, message: str):
-        super().__init__(message, error_type="RESOURCE_ERROR", retryable=True)
-
-class ConfigurationError(NodeException):
-    """설정 오류"""
-    pass
-
-```
+입력 검증 실패 같은 일반 오류는 표준 예외(`ValueError`, `TypeError`)를 그대로 raise하면 됩니다. `NodeException`, `DataValidationError`, `ResourceError`, `ConfigurationError` 등 별도의 오류 계층은 SDK에 존재하지 않습니다.
 
 ## **완전한 노드 예시**
 

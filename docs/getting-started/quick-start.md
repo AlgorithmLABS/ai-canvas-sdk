@@ -18,68 +18,69 @@
 `hello_node.py` 파일을 생성합니다:
 
 ```python
-from ai_canvas_sdk import CustomNode, NodeSchema, PortType, NodeContext
+import pandas as pd
+from ai_canvas_sdk import (
+    CustomNode, NodeContext, NodeData, NodeSchema,
+    Parameter, Port, PortEnum, PortTypeEnum, PositionEnum,
+)
+
 
 class HelloWorldNode(CustomNode):
     """간단한 텍스트 처리 노드"""
-    
-    @staticmethod
-    def get_schema() -> NodeSchema:
+
+    def get_schema(self) -> NodeSchema:
         return NodeSchema(
             name="HelloWorld",
-            display_name="Hello World 노드",
-            description="입력 텍스트에 인사말을 추가합니다",
             category="text_processing",
-            inputs=[
-
-            ],
-            outputs=[
-                {
-                    "name": "output_text", 
-                    "display_name": "출력 텍스트",
-                    "type": PortType.DATASET
-                }
-            ],
-            parameters=[
-                {
-                    "name": "greeting",
-                    "display_name": "인사말",
-                    "type": "text",
-                    "default": "Hello",
-                    "description": "앞에 붙일 인사말을 입력하세요"
-                },
-                {
-                    "name":"user_name",
-                    "display_name":"이름",
-                    "type":"text",
-                    "default":"Hong",
-                    "description":"사용자 이름을 입력하세요"
-                }
-            ]
+            data=NodeData(
+                input_ports=[],
+                output_ports=[
+                    Port(
+                        type=PortEnum.SOURCE,
+                        position=PositionEnum.RIGHT,
+                        port_type=PortTypeEnum.DATASET,
+                        label="output_text",
+                    ),
+                ],
+                params=[
+                    Parameter(
+                        text="인사말",
+                        name="greeting",
+                        form_type="input",
+                        value="Hello",
+                        value_type="string",
+                        is_tab=True,
+                    ),
+                    Parameter(
+                        text="이름",
+                        name="user_name",
+                        form_type="input",
+                        value="Hong",
+                        value_type="string",
+                        is_tab=True,
+                    ),
+                ],
+            ),
+            version="1.0.0",
         )
-    
-    def run(self, parameters: dict, ctx: NodeContext) -> dict:
+
+    def run(self, inputs: dict, parameters: dict, ctx: NodeContext) -> dict:
         """노드 실행 로직"""
-        # 입력 데이터 받기
-        user_name = parameters.get('user_name', 'Hong')
-        greeting = parameters.get('greeting', 'Hello')
-        
+        user_name = parameters.get("user_name", "Hong")
+        greeting = parameters.get("greeting", "Hello")
+
         # 비즈니스 로직
-        # 비즈니스 로직
-        # 'pd'와 'Dataset'을 import해야 합니다.
-        # 예: import pandas as pd
-        # 예: from ai_canvas_sdk.types import Dataset
-        df=pd.DataFrame({
-            "name":[user_name],
-            "greeting":[f"{greeting} {user_name}"]
+        df = pd.DataFrame({
+            "name": [user_name],
+            "greeting": [f"{greeting} {user_name}"],
         })
-        
-        # 결과 반환
-        return {"output_text": Dataset(dataframe=df)}
+
+        # 결과 반환 — 출력 포트 label을 key로 하는 dict
+        return {"output_text": df}
+
 
 node = HelloWorldNode()
 ```
-
 
 ## Step 2: 데이터프레임 노드 예제
 
@@ -88,86 +89,96 @@ DataFrame 처리 노드를 만들어보겠습니다:
 `data_filter_node.py`:
 
 ```python
-from ai_canvas_sdk import CustomNode, NodeSchema, PortType, NodeContext
 import pandas as pd
+from ai_canvas_sdk import (
+    CustomNode, NodeContext, NodeData, NodeSchema,
+    Parameter, Port, PortEnum, PortTypeEnum, PositionEnum,
+)
+
 
 class DataFilterNode(CustomNode):
     """데이터 필터링 노드"""
-    
-    @staticmethod
-    def get_schema() -> NodeSchema:
+
+    def get_schema(self) -> NodeSchema:
         return NodeSchema(
             name="DataFilter",
-            display_name="데이터 필터",
-            description="조건에 맞는 데이터만 필터링합니다",
             category="data_processing",
-            inputs=[
-                {
-                    "name": "input_data",
-                    "display_name": "입력 데이터",
-                    "type": PortType.DATASET,
-                    "required": True
-                }
-            ],
-            outputs=[
-                {
-                    "name": "filtered_data",
-                    "display_name": "필터링된 데이터",
-                    "type": PortType.DATASET
-                },
-                {
-                    "name": "stats",
-                    "display_name": "필터링 통계",
-                    "type": PortType.DISPLAY
-                }
-            ],
-            parameters=[
-                {
-                    "name": "column",
-                    "display_name": "필터 컬럼",
-                    "type": "text",
-                    "required": True,
-                    "description": "필터링할 컬럼명"
-                },
-                {
-                    "name": "threshold",
-                    "display_name": "임계값",
-                    "type": "number",
-                    "default": 0,
-                    "description": "이 값보다 큰 데이터만 유지"
-                }
-            ]
+            data=NodeData(
+                input_ports=[
+                    Port(
+                        type=PortEnum.TARGET,
+                        position=PositionEnum.LEFT,
+                        port_type=PortTypeEnum.DATASET,
+                        label="input_data",
+                        required=True,
+                    ),
+                ],
+                output_ports=[
+                    Port(
+                        type=PortEnum.SOURCE,
+                        position=PositionEnum.RIGHT,
+                        port_type=PortTypeEnum.DATASET,
+                        label="filtered_data",
+                    ),
+                    Port(
+                        type=PortEnum.SOURCE,
+                        position=PositionEnum.RIGHT,
+                        port_type=PortTypeEnum.DISPLAY,
+                        label="stats",
+                    ),
+                ],
+                params=[
+                    Parameter(
+                        text="필터 컬럼",
+                        name="column",
+                        form_type="input",
+                        value_type="string",
+                        is_tab=True,
+                    ),
+                    Parameter(
+                        text="임계값",
+                        name="threshold",
+                        form_type="number",
+                        value=0,
+                        value_type="number",
+                        is_tab=True,
+                    ),
+                ],
+            ),
+            version="1.0.0",
         )
-    
-    def validate(self, inputs: Dataset, parameters: dict) -> None:
+
+    def validate(self, inputs: dict, parameters: dict) -> None:
         """입력 검증"""
-        df = inputs.dataframe
-        column = parameters.get('column')
-        
+        df = inputs["input_data"]
+        column = parameters.get("column")
+
         if df is None or df.empty:
             raise ValueError("입력 데이터가 비어있습니다")
-        
+
         if column not in df.columns:
             raise ValueError(f"컬럼 '{column}'이 데이터에 존재하지 않습니다")
-    
+
     def run(self, inputs: dict, parameters: dict, ctx: NodeContext) -> dict:
-        df = inputs['input_data']
-        column = parameters['column']
-        threshold = parameters.get('threshold', 0)
-        
+        df = inputs["input_data"]
+        column = parameters["column"]
+        threshold = parameters.get("threshold", 0)
+
         # 데이터 필터링
         filtered_df = df[df[column] > threshold]
-        
+
         # 통계 생성
-        stats = {
+        stats_df = pd.DataFrame([{
             "original_rows": len(df),
             "filtered_rows": len(filtered_df),
             "filter_ratio": len(filtered_df) / len(df) if len(df) > 0 else 0,
             "column": column,
-            "threshold": threshold
-        }
-        
-        return (Dataset(dataframe=filtered_df),Display(stats))
+            "threshold": threshold,
+        }])
+
+        # 결과 반환 — 출력 포트 label(filtered_data, stats)을 key로 하는 dict
+        return {"filtered_data": filtered_df, "stats": stats_df}
+
 
 node = DataFilterNode()
 ```
@@ -175,27 +186,35 @@ node = DataFilterNode()
 ### 데이터프레임 테스트
 
 ```bash
-# 샘플 데이터로 테스트
+# 스키마만 먼저 검증 (실제 데이터 없이)
 ai-canvas-sdk test data_filter_node.py --validate-only
 ```
 
 스키마가 맞는지 먼저 확인한 뒤, `-i`와 `-p`로 실제 입력을 주고 다시 실행합니다.
 
+```bash
+ai-canvas-sdk test data_filter_node.py -i input.json -p '{"column": "value", "threshold": 0.5}'
+```
+
 ## Step 3: 로컬 테스트 반복
 
 ```python
 # large_data_test.py
+import numpy as np
 import pandas as pd
-from ai_canvas_sdk.testing import create_sample_dataframe
+from ai_canvas_sdk import NodeContext
+from data_filter_node import node
 
-# 10만 행 데이터 생성
-large_df = create_sample_dataframe(rows=100000, columns=10)
+# 10만 행 샘플 데이터 생성
+large_df = pd.DataFrame({
+    "value": np.random.uniform(0, 1, size=100_000),
+})
 
 # 노드 테스트
-ctx = NodeContext()
-result = data_filter_node.run(
-    inputs={'input_data': large_df},
-    parameters={'column': 'value', 'threshold': 0.5},
+ctx = NodeContext(execution_id="local-test", node_id="data-filter")
+result = node.run(
+    inputs={"input_data": large_df},
+    parameters={"column": "value", "threshold": 0.5},
     ctx=ctx,
 )
 
@@ -212,4 +231,4 @@ print(f"통계: {result['stats']}")
 
 - **작게 시작**: 간단한 기능부터 구현
 - **자주 테스트**: `ai-canvas-sdk test` 명령을 활용
-- **로그 확인**: `~/.ai-canvas/sdk.log` 파일 모니터링
+- **로그 확인**: 노드 안에서 `ctx.log_info()` 등으로 로그를 남기고, `ai-canvas-sdk test`에 `-v` 옵션을 주면 실행 중 로그를 함께 확인할 수 있습니다.

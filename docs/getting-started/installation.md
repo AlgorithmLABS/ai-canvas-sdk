@@ -26,10 +26,14 @@ AI Canvas Custom Node SDK를 설치하고 개발 환경을 설정하는 방법�
 pip install "git+https://github.com/AlgorithmLABS/ai-canvas-sdk"
 ```
 
-이 설치는 다음 추가 패키지를 포함합니다:
-- `pyarrow`: Apache Arrow/Parquet 지원
-- `grpcio-tools`: Protocol Buffers 컴파일러
-- `scikit-learn`: ML 모델 지원
+이 설치는 다음 런타임 의존성을 함께 설치합니다(`pyproject.toml` 기준):
+- `grpcio`: gRPC 런타임
+- `protobuf`: Protocol Buffers 메시지
+- `pandas`: DataFrame 기반 데이터 처리
+- `pyarrow`: Apache Arrow/Parquet 직렬화
+- `numpy`: 수치 연산
+
+> 개발용 도구(`grpcio-tools`, `mypy-protobuf`, `pytest` 등)는 optional-dependencies(예: `pip install "ai-canvas-sdk[dev]"`)로 분리되어 있어 기본 설치에는 포함되지 않습니다.
 
 ## 가상 환경 설정 (권장)
 
@@ -66,14 +70,19 @@ ai-canvas-sdk --version
 
 ```
 
-성공적으로 설치되었다면 다음과 유사한 출력을 볼 수 있습니다:
+성공적으로 설치되었다면 설치된 버전 문자열이 한 줄로 출력됩니다:
 
 ```
-AI Canvas Custom Node SDK v0.1.0
-✓ Python version: 3.10.12
-✓ gRPC connection: OK
-✓ Serialization: OK (Parquet/Arrow available)
-✓ Installation complete!
+0.3.0.dev7+gcad704b18
+```
+
+버전 문자열은 설치 시점에 따라 달라집니다(정식 릴리즈는 `vX.Y.Z` 태그 기준). CLI가 제공하는 명령은 다음과 같습니다:
+
+```bash
+ai-canvas-sdk --help
+# commands:
+#   test       커스텀 노드를 로컬에서 테스트합니다.
+#   register   custom node 를 backend 에 등록 (CI push 경로)
 ```
 
 ## 다음 단계
