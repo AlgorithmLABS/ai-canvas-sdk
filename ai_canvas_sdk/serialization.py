@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import math
 from typing import Any
 
 import pandas as pd
@@ -9,9 +10,53 @@ import pyarrow as pa
 
 from ai_canvas_sdk.grpc import custom_node_service_pb2 as pb
 from google.protobuf import struct_pb2, any_pb2
-from google.protobuf.json_format import MessageToDict
 
 logger = logging.getLogger(__name__)
+
+
+def _sanitize_json_value(value: Any) -> Any:
+    """NaN/Inf 를 None 으로 정규화합니다 (재귀).
+
+    JSON 표준에는 NaN/Infinity 가 없어 protobuf 6.x 의 json_format 이
+    Struct 안의 비유한(non-finite) number_value 직렬화를 거부한다
+    ("Fail to serialize NaN for Value.number_value..."). DataFrame 결측값이
+    Struct 에 들어가기 전에 None(JSON null)으로 정규화해 원천 차단한다.
+    """
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if isinstance(value, dict):
+        return {k: _sanitize_json_value(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_sanitize_json_value(v) for v in value]
+    return value
+
+
+def _proto_value_to_python(value: struct_pb2.Value) -> Any:
+    """google.protobuf.Value → Python 값 (NaN/Inf 허용).
+
+    json_format.MessageToDict 는 JSON 표준 준수를 위해 비유한 number_value 를
+    거부하므로, 구버전 sender 가 이미 NaN 을 담아 보낸 데이터도 읽을 수 있도록
+    Struct 를 직접 순회한다 (디코드 톨러런스).
+    """
+    kind = value.WhichOneof("kind")
+    if kind == "null_value":
+        return None
+    if kind == "number_value":
+        return value.number_value
+    if kind == "string_value":
+        return value.string_value
+    if kind == "bool_value":
+        return value.bool_value
+    if kind == "struct_value":
+        return _proto_struct_to_python(value.struct_value)
+    if kind == "list_value":
+        return [_proto_value_to_python(v) for v in value.list_value.values]
+    return None
+
+
+def _proto_struct_to_python(struct: struct_pb2.Struct) -> dict:
+    """google.protobuf.Struct → Python dict (NaN/Inf 허용, MessageToDict 대체)."""
+    return {key: _proto_value_to_python(struct.fields[key]) for key in struct.fields}
 
 
 class DataSerializer:
@@ -93,8 +138,10 @@ class DataSerializer:
         """
         logger.debug("Using JSON serialization")
 
-        # DataFrame을 dict로 변환
-        data_dict = df.to_dict(orient="records")
+        # DataFrame을 dict로 변환. NaN/Inf 는 JSON 표준 비호환이라 protobuf 6.x
+        # json_format 이 디코드를 거부하므로 None(JSON null)으로 정규화한다 —
+        # float 컬럼의 None 은 역직렬화 시 pandas 가 NaN 으로 복원한다.
+        data_dict = _sanitize_json_value(df.to_dict(orient="records"))
 
         # dtype 정보 저장 (역직렬화 시 타입 복원용)
         dtypes = {col: str(dtype) for col, dtype in df.dtypes.items()}
@@ -190,8 +237,9 @@ class DataSerializer:
         json_struct = struct_pb2.Struct()
         port_data.json_data.Unpack(json_struct)
 
-        # Struct를 Python dict로 변환
-        json_dict = MessageToDict(json_struct)
+        # Struct를 Python dict로 변환 — MessageToDict 는 구버전 sender 가 담아 보낸
+        # NaN number_value 를 거부하므로 직접 순회한다 (디코드 톨러런스)
+        json_dict = _proto_struct_to_python(json_struct)
 
         data_dict = json_dict.get("data", [])
         df = pd.DataFrame(data_dict)
@@ -246,9 +294,9 @@ class DataSerializer:
         if isinstance(value, pd.DataFrame):
             return self.serialize(value, port_id, port_name)
         elif isinstance(value, dict):
-            # dict → JSON (Struct로 감싸서 Any에 Pack)
+            # dict → JSON (Struct로 감싸서 Any에 Pack). NaN/Inf 는 None 으로 정규화
             json_struct = struct_pb2.Struct()
-            json_struct.update(value)
+            json_struct.update(_sanitize_json_value(value))
 
             json_any = any_pb2.Any()
             json_any.Pack(json_struct)
@@ -330,11 +378,11 @@ class DataSerializer:
             # bool
             return port_data.boolean_data
         elif port_data.WhichOneof("data") == "json_data":
-            # dict - Any에서 Struct로 Unpack
+            # dict - Any에서 Struct로 Unpack (NaN 허용 직접 순회)
             try:
                 json_struct = struct_pb2.Struct()
                 port_data.json_data.Unpack(json_struct)
-                return MessageToDict(json_struct)
+                return _proto_struct_to_python(json_struct)
             except Exception as e:
                 logger.warning(f"Failed to unpack json_data: {e}")
                 return None
