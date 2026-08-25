@@ -16,7 +16,7 @@ AI Canvas Custom Node SDK로 자체 데이터 처리 노드를 만들고, 로컬
 | [데이터 타입](./concepts/data-types.md) | `PortTypeEnum` 과 직렬화 임계값 |
 | [CI 등록](./ci/README.md) | `ai-canvas-sdk register` (GitHub/GitLab) |
 
-예제 코드: [`docs/examples/hello_node.py`](./examples/hello_node.py).
+예제 코드: [`docs/examples/hello_node.py`](./examples/hello_node.py), [`docs/examples/public-data-node.py`](./examples/public-data-node.py) (secret 주입).
 
 ## 개요
 
