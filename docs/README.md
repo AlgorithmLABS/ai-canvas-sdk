@@ -1,20 +1,26 @@
 # AI Canvas Custom Node SDK Documentation
 
-AI Canvas Custom Node SDK를 사용하여 자체 데이터 처리 노드를 개발하는 방법을 안내합니다.
+AI Canvas Custom Node SDK로 자체 데이터 처리 노드를 만들고, 로컬 CLI로 검증하는 방법을 안내합니다.
+
+## 문서 지도
+
+| 문서 | 내용 |
+|------|------|
+| [설치](./getting-started/installation.md) | pip/venv/conda, `--version` 출력 |
+| [빠른 시작](./getting-started/quick-start.md) | 노드 하나 + `ai-canvas-sdk test` |
+| [첫 번째 노드](./getting-started/first-node.md) | 파라미터·검증이 있는 필터 노드 |
+| [로컬 CLI 테스트](./guides/local-cli-testing.md) | `-i` / `-p` / `-s` / `-o` 레퍼런스 |
+| [기본 노드 개발](./guides/basic-node-development.md) | 스키마·`run()` 패턴 |
+| [Secret 사용](./guides/using-secrets.md) | `required_secrets` / `ctx.get_secret` |
+| [CustomNode API](./api-reference/custom-node-class.md) | 공개 클래스·필드 |
+| [데이터 타입](./concepts/data-types.md) | `PortTypeEnum` 과 직렬화 임계값 |
+| [CI 등록](./ci/README.md) | `ai-canvas-sdk register` (GitHub/GitLab) |
+
+예제 코드: [`docs/examples/hello_node.py`](./examples/hello_node.py).
 
 ## 개요
 
-AI Canvas는 시각적 워크플로우 빌더를 통해 ML 파이프라인을 구성하고 실행할 수 있는 플랫폼입니다. Custom Node SDK를 사용하면 비즈니스 로직에만 집중하여 새로운 노드를 개발할 수 있습니다.
-
-### 주요 특징
-
-- **gRPC 통신 + mTLS 보안**: Protocol Buffers 기반 바이너리 프로토콜, 양단 인증 지원
-- **표준화된 직렬화**: 메타데이터는 JSON, 대용량 데이터셋/파일은 Parquet/Arrow 기반(공유 볼륨 경유)
-- **실행 이벤트 스트리밍**: 로그/진행률/부분결과를 서버 스트리밍으로 전달
-- **타입 안정성**: 런타임 스키마 검증(Pydantic/Protobuf) + 선택적 mypy 정적 점검
-- **간단한 인터페이스**: run() 메서드만 구현하면 완료, NodeContext 제공
-
-### 아키텍처 개요
+Custom Node SDK는 `get_schema()` 와 `run()` 만 구현하면 됩니다. gRPC·직렬화·캔버스 UI 등록은 플랫폼이 담당합니다.
 
 ```
 ┌─────────┐    ┌─────────┐    ┌─────┐    ┌──────────────┐    ┌─────────────┐
@@ -24,15 +30,20 @@ AI Canvas는 시각적 워크플로우 빌더를 통해 ML 파이프라인을 �
                                          └──────────────┘    └─────────────┘
 ```
 
+로컬에서는 이 경로를 타지 않습니다. `ai-canvas-sdk test` 가 노드 파일을 로드해 스키마를 검사하고 `run()` 을 직접 호출합니다.
+
 ## 빠른 시작
 
 ### 1. 설치
 
 ```bash
 pip install "git+https://github.com/AlgorithmLABS/ai-canvas-sdk"
+ai-canvas-sdk --version
 ```
 
-### 2. 첫 번째 노드 생성
+버전 문자열만 출력됩니다 (헬스체크 배너는 없습니다).
+
+### 2. 첫 번째 노드
 
 ```python
 from ai_canvas_sdk import (
@@ -71,118 +82,59 @@ class HelloWorldNode(CustomNode):
         return {"output_data": df}
 ```
 
-### 3. 노드 실행
+### 3. 로컬 테스트
 
 ```bash
 ai-canvas-sdk test hello_world.py
+ai-canvas-sdk test hello_world.py --validate-only
+ai-canvas-sdk test hello_world.py -i input_data.json -p '{"message": "Hello"}' -o result.json -v
 ```
 
-#### 주요 옵션
+#### `test` 옵션
 
 | 옵션 | 단축 | 설명 |
 |------|------|------|
 | `node_file` | | (필수) 테스트할 노드 파일 경로 |
-| `--class` | | 특정 노드 클래스 지정 (파일에 여러 노드가 있을 경우) |
-| `--validate-only` | | 스키마 검증만 수행, 실행하지 않음 |
-| `--input` | `-i` | 입력 데이터 파일 경로 (JSON 또는 CSV) |
+| `--class` | | 파일에 노드 클래스가 여러 개일 때 지정 |
+| `--validate-only` | | 스키마 검증만 수행, `run()` 하지 않음 |
+| `--input` | `-i` | 입력 JSON 또는 CSV |
 | `--params` | `-p` | 파라미터 JSON 문자열 |
-| `--secret` | `-s` | 노드에 주입할 secret `KEY=VALUE` (여러 번 지정 가능) |
-| `--output` | `-o` | 결과를 저장할 파일 경로 (JSON 또는 CSV) |
-| `--verbose` | `-v` | 상세 출력 모드 |
-
-#### 활용 예시
-
-**스키마 검증만 수행:**
-```bash
-ai-canvas-sdk test hello_world.py --validate-only
-```
-
-**입력 데이터를 지정하여 실행:**
-```bash
-ai-canvas-sdk test hello_world.py -i input_data.json
-```
-
-**파라미터 전달:**
-```bash
-ai-canvas-sdk test hello_world.py -p '{"message": "Hello"}'
-```
-
-**secret 주입 (`required_secrets` 노드 검증):**
-```bash
-ai-canvas-sdk test weather_node.py -s weather_api_key=local-test-key
-```
-
-**결과를 파일로 저장:**
-```bash
-ai-canvas-sdk test hello_world.py -i input_data.csv -o result.json
-```
-
-**특정 클래스를 지정하여 실행:**
-```bash
-ai-canvas-sdk test my_nodes.py --class MyCustomNode
-```
-
-**여러 옵션 조합:**
-```bash
-ai-canvas-sdk test hello_world.py -i data.json -p '{"threshold": 0.5}' -o output.csv -v
-```
+| `--secret` | `-s` | secret `KEY=VALUE` (여러 번 지정 가능). Secret Store 에 접속하지 않음 |
+| `--output` | `-o` | 결과 JSON 또는 CSV |
+| `--verbose` | `-v` | 스키마 경고 포함 |
 
 #### 입력 데이터 형식
 
-- **JSON (포트별 매핑):** `{"port_label": [{"col": "val"}, ...]}` — 각 포트에 데이터를 개별 매핑
-- **JSON (단일 배열):** `[{"col": "val"}, ...]` — 첫 번째 입력 포트에 자동 할당
-- **CSV:** 첫 번째 입력 포트에 자동 할당
+- **JSON (포트별):** `{"port_label": [{"col": "val"}, ...]}`
+- **JSON (배열):** `[{"col": "val"}, ...]` — 첫 번째 입력 포트에 할당
+- **CSV:** 첫 번째 입력 포트에 할당
+- **`-i` 생략:** 각 입력 포트에 빈 DataFrame
 
-## 핵심 장점
-
-### 서버 코드 격리
-- AI Canvas 내부 서버 구조를 알 필요 없음
-- gRPC 통신과 직렬화는 SDK가 자동 처리
-- 비즈니스 로직에만 집중
-
-### 데이터 처리 원칙
-- Parquet/Arrow 기반 직렬화로 효율적 전송
-- 대용량 데이터(파일/데이터셋)는 공유 볼륨으로 I/O하며, SDK/플랫폼은 파일 경로(예: `file:///data/...`)만 교환
-- gRPC는 메타데이터와 실행 이벤트(로그/진행률/부분결과) 스트리밍을 담당
-
-### 공유 볼륨(Local) 전용 구성
-
-- 마운트: DAG 워커와 custom-node-runtime 컨테이너 모두 동일 경로(예: `/data`)로 공유 볼륨을 마운트합니다.
-- 경로 전달: gRPC로는 파일 바이트를 보내지 않고, `file:///data/...` 형태의 경로만 교환합니다.
-- 네임스페이스: 실행 단위 디렉터리 구조를 권장합니다. 예) `/data/{canvas_id}/{node_id}/{run_id}/...`
-- 원자성: 임시 파일에 기록 후 `rename`으로 커밋하여 부분 읽기를 방지합니다.
-- 권한: POSIX 권한/그룹을 사용해 최소 권한 원칙을 적용합니다(예: 770). rootless 컨테이너 권장.
-- 용량/정리: 실행 종료 후 TTL/GC 정책으로 디스크를 정리합니다.
-
-### 타입 안전성
-- 런타임 스키마 검증(Pydantic/Protobuf)
-- 선택적 mypy로 정적 타입 점검
-- 런타임 타입 불일치 방지
+로그와 진행률은 stderr 로 출력됩니다.
 
 ## 배포/등록
 
-이 저장소의 CLI는 현재 로컬 노드 검증용 `test` 명령과 버전 출력만 제공합니다.
-배포/등록 작업은 별도 플랫폼 도구에서 수행합니다.
+| 명령 | 역할 |
+|------|------|
+| `ai-canvas-sdk test` | 로컬 스키마 검증 + `run()` |
+| `ai-canvas-sdk register` | CI에서 백엔드에 노드 upsert (Flow A) |
+| `ai-canvas-sdk --version` | 패키지 버전 |
 
-## 실행 제어(취소/타임아웃/멱등성)
+`register` 는 로컬 개발용 배포 도구가 아닙니다. 레포 레이아웃(`<NodeSchema.name>/main.py`)과 OAuth client 가 필요합니다. → [CI 등록 가이드](./ci/README.md)
 
-- **취소**: 플랫폼의 취소 요청이 gRPC Cancel(run_id)로 전달됩니다.
-- **타임아웃**: 런타임이 작업 컨테이너/잡을 강제 종료합니다.
-- **멱등성**: idempotency_key로 중복 실행을 방지합니다.
+## 실행 제어 (플랫폼 런타임)
+
+로컬 `test` 에는 해당하지 않습니다. 캔버스에서 실행될 때:
+
+- **취소**: `ctx.is_cancelled()` 로 확인 (로컬 테스트 컨텍스트는 항상 `False`)
+- **타임아웃**: 런타임이 작업 컨테이너를 종료
+- **대용량 데이터**: gRPC 로는 경로만 교환하고 공유 볼륨(`file:///data/...`)을 사용
 
 ## 보안
 
-- 모든 gRPC 통신은 mTLS를 사용합니다.
-- 대용량 데이터는 공유 볼륨에서 최소 권한(경로 ACL/권한)으로 접근합니다.
-- 런타임과 노드 이미지는 서명/스캔 정책을 따릅니다.
-- API 키·토큰 등 비밀 값은 노드 코드에 하드코딩하지 말고 secret으로 선언해 사용합니다 — [Secret 사용 가이드](./guides/using-secrets.md) 참고.
-
-## 가이드
-
-- [기본 노드 개발 가이드](./guides/basic-node-development.md) — 핵심 패턴과 모범 사례
-- [Secret 사용 가이드](./guides/using-secrets.md) — API 키·토큰을 안전하게 다루는 방법(`required_secrets` / `ctx.get_secret`)
-
+- 플랫폼 gRPC 는 mTLS 를 사용합니다.
+- API 키는 코드에 넣지 말고 `required_secrets` + `ctx.get_secret` 을 쓰세요. [Secret 가이드](./guides/using-secrets.md)
 
 ---
 
-**다음 단계**: [설치 가이드](./getting-started/installation.md)에서 개발 환경을 설정해보세요.
+**다음 단계**: [설치 가이드](./getting-started/installation.md)
