@@ -63,8 +63,9 @@ class PublicDataNode(CustomNode):
                     Parameter(
                         text="조회 행 수",
                         name="num_of_rows",
-                        form_type="number",
+                        form_type="numCount",
                         value=100,
+                        options={"min": 1, "max": 1000, "step": 1},
                         value_type="number",
                         is_tab=True,
                     ),

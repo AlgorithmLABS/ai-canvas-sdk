@@ -67,22 +67,26 @@ class FilterRowsNode(CustomNode):
                         name="column",
                         form_type="input",
                         value="score",
+                        is_tab=True,
                     ),
                     Parameter(
                         text="임계값",
                         name="threshold",
-                        form_type="number",
+                        form_type="numCount",  # `number` 는 캔버스에 없음
                         value=90,
+                        is_tab=True,
+                        options={"min": 0, "max": 100, "step": 1},
                     ),
                     Parameter(
                         text="비교",
                         name="op",
                         form_type="select",
                         value="gte",
+                        is_tab=True,
                         options={
-                            "items": [
-                                {"label": "이상", "value": "gte"},
-                                {"label": "이하", "value": "lte"},
+                            "selectOption": [
+                                {"text": "이상", "value": "gte"},
+                                {"text": "이하", "value": "lte"},
                             ]
                         },
                     ),

@@ -201,7 +201,7 @@ class Parameter:
 |------|------|
 | `name` | `run()` / CLI `-p` 의 키 |
 | `text` | UI 라벨. 런타임 키가 아님 |
-| `form_type` | 캔버스 폼 종류 |
+| `form_type` | 프론트 `forms` 레지스트리 키. `number`/`text` 는 없음. 숫자는 `numCount`. → [form_type](../guides/form-types.md) |
 | `value` | 기본값 |
 | `value_type` | `string` / `number` / `boolean` / `object` / `stringArray` / `numberArray` / `objectArray` / `unknown`. 공개 `__init__` 으로는 export 되지 않으므로 생략하면 STRING |
 | `is_tab` | `True` 이면 오른쪽 파라미터 탭에 표시 |

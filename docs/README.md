@@ -11,6 +11,7 @@ AI Canvas Custom Node SDK로 자체 데이터 처리 노드를 만들고, 로컬
 | [첫 번째 노드](./getting-started/first-node.md) | 파라미터·검증이 있는 필터 노드 |
 | [로컬 CLI 테스트](./guides/local-cli-testing.md) | `-i` / `-p` / `-s` / `-o` 레퍼런스 |
 | [기본 노드 개발](./guides/basic-node-development.md) | 스키마·`run()` 패턴 |
+| [form_type](./guides/form-types.md) | 캔버스 위젯 키 (`number` 없음, `numCount`) |
 | [Secret 사용](./guides/using-secrets.md) | `required_secrets` / `ctx.get_secret` |
 | [CustomNode API](./api-reference/custom-node-class.md) | 공개 클래스·필드 |
 | [데이터 타입](./concepts/data-types.md) | `PortTypeEnum` 과 직렬화 임계값 |
