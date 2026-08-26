@@ -61,8 +61,10 @@ class TemplateNode(CustomNode):
                     Parameter(
                         text="임계값",          # UI 표시명
                         name="threshold",      # parameters 키
-                        form_type="number",
+                        form_type="numCount",  # `number` 는 레지스트리에 없음 → formType undefined
                         value=0.5,             # CLI -p 생략 시 기본값
+                        is_tab=True,
+                        options={"min": 0, "max": 1, "step": 0.1},
                     ),
                 ],
             ),
@@ -93,10 +95,10 @@ class TemplateNode(CustomNode):
 |------|------|
 | `name` | `parameters` dict 키, CLI `-p` 키 |
 | `text` | 캔버스 표시 이름 |
-| `form_type` | 캔버스 폼 위젯 (`input`, `number`, `select`, …) |
+| `form_type` | 프론트 `forms` 키. **`number` 는 없음** — 숫자는 `numCount`/`slider`. 목록은 [form_type](./form-types.md) |
 | `value` | 기본값. CLI는 `-p` 에 없는 이름만 이 값으로 채움 |
-| `options` | select 등 위젯 옵션 |
-| `is_tab` | `True` 이면 오른쪽 파라미터 탭에 표시 |
+| `options` | 위젯별. `select` 는 `{"selectOption": [{"text": "…", "value": "…"}]}` |
+| `is_tab` | **`True` 여야 오른쪽 파라미터 탭에 표시.** 생략하면 캔버스에서 안 보임 |
 
 ## run() 패턴
 
