@@ -34,14 +34,14 @@ class PortTypeEnum(Enum):
 | 행 수 | 전략 |
 |-------|------|
 | &lt; 10,000 | JSON |
-| 10,000 이상, Arrow 페이로드 &lt; 3 MiB | Arrow + LZ4 |
-| Arrow 페이로드 ≥ 3 MiB 또는 행이 매우 큼 | `ValueError` — 공유 볼륨 파일 경로 사용 |
+| 10,000 이상, Arrow 페이로드 &lt; 50 MiB | Arrow + LZ4 |
+| Arrow 페이로드 ≥ 50 MiB 또는 행이 매우 큼 | `ValueError` — 공유 볼륨 파일 경로 사용 |
 
 상수:
 
 - `SMALL_DATA_THRESHOLD = 10_000`
 - `LARGE_DATA_THRESHOLD = 100_000`
-- `GRPC_SIZE_LIMIT = 3 * 1024 * 1024`
+- `GRPC_SIZE_LIMIT = 50 * 1024 * 1024`
 
 대용량은 gRPC 바이트가 아니라 `file:///data/...` 경로로 넘기는 것이 플랫폼 설계입니다.
 

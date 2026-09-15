@@ -27,7 +27,7 @@ class DataSerializer:
     # 임계값 설정
     SMALL_DATA_THRESHOLD = 10_000  # 1만 행
     LARGE_DATA_THRESHOLD = 100_000  # 10만 행
-    GRPC_SIZE_LIMIT = 3 * 1024 * 1024  # 3MB (안전 마진)
+    GRPC_SIZE_LIMIT = 50 * 1024 * 1024  # 50MiB (CNE/DAG 채널 옵션과 동일)
 
     def serialize(self, df: pd.DataFrame, port_id: str, port_name: str = "") -> pb.PortData:
         """
