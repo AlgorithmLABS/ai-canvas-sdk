@@ -38,7 +38,6 @@ class PortTypeEnum(Enum):
 
 상수:
 
-- `LARGE_DATA_THRESHOLD = 100_000`
 - `GRPC_SIZE_LIMIT = 50 * 1024 * 1024`
 
 대용량은 gRPC 바이트가 아니라 `file:///data/...` 경로로 넘기는 것이 플랫폼 설계입니다.

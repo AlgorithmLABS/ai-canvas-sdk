@@ -24,7 +24,6 @@ class DataSerializer:
     dict / 스칼라는 JSON·text·number·boolean 경로를 유지합니다.
     """
 
-    LARGE_DATA_THRESHOLD = 100_000  # 10만 행 (문서·가드용. serialize 분기에 사용하지 않음)
     GRPC_SIZE_LIMIT = 50 * 1024 * 1024  # 50MiB (CNE/DAG 채널 옵션과 동일)
 
     def serialize(self, df: pd.DataFrame, port_id: str, port_name: str = "") -> pb.PortData:
@@ -50,24 +49,24 @@ class DataSerializer:
 
         logger.debug(f"Arrow serialization size: {arrow_size:,} bytes")
 
-        if arrow_size < self.GRPC_SIZE_LIMIT:
-            return pb.PortData(
-                port_id=port_id,
-                port_name=port_name,
-                port_type=pb.PORT_TYPE_DATASET,
-                binary_data=arrow_bytes,
-                metadata={
-                    "format": "arrow",
-                    "rows": str(row_count),
-                    "columns": str(len(df.columns)),
-                    "size_bytes": str(arrow_size),
-                },
+        if arrow_size >= self.GRPC_SIZE_LIMIT:
+            raise ValueError(
+                f"DataFrame이 너무 큽니다 ({arrow_size:,} bytes >= {self.GRPC_SIZE_LIMIT:,} bytes). "
+                f"행 수: {row_count:,}, 열 수: {len(df.columns)}. "
+                f"공유 볼륨 파일 전송을 사용하세요."
             )
 
-        raise ValueError(
-            f"DataFrame이 너무 큽니다 ({arrow_size:,} bytes > {self.GRPC_SIZE_LIMIT:,} bytes). "
-            f"행 수: {row_count:,}, 열 수: {len(df.columns)}. "
-            f"공유 볼륨 파일 전송을 사용하세요."
+        return pb.PortData(
+            port_id=port_id,
+            port_name=port_name,
+            port_type=pb.PORT_TYPE_DATASET,
+            binary_data=arrow_bytes,
+            metadata={
+                "format": "arrow",
+                "rows": str(row_count),
+                "columns": str(len(df.columns)),
+                "size_bytes": str(arrow_size),
+            },
         )
 
     def _to_arrow_bytes(self, df: pd.DataFrame) -> bytes:
@@ -109,14 +108,16 @@ class DataSerializer:
         Raises:
             ValueError: 지원하지 않는 형식
         """
-        format_type = port_data.metadata.get("format", "json")
+        format_type = port_data.metadata.get("format") or (
+            "json" if port_data.WhichOneof("data") == "json_data" else "arrow"
+        )
 
         logger.debug(f"Deserializing PortData: format={format_type}")
 
-        if format_type == "json":
-            return self._deserialize_from_json(port_data)
-        elif format_type == "arrow":
+        if format_type == "arrow":
             return self._deserialize_from_arrow(port_data)
+        elif format_type == "json":
+            return self._deserialize_from_json(port_data)
         else:
             raise ValueError(f"지원하지 않는 데이터 형식: {format_type}")
 
@@ -252,7 +253,7 @@ class DataSerializer:
         """
         format_type = port_data.metadata.get("format", "unknown")
 
-        if port_data.port_type == pb.PORT_TYPE_DATASET or format_type in ["json", "arrow"]:
+        if port_data.port_type == pb.PORT_TYPE_DATASET or format_type == "arrow":
             return self.deserialize(port_data)
         elif format_type == "text" or port_data.WhichOneof("data") == "text_data":
             return port_data.text_data

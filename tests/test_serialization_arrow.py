@@ -99,3 +99,10 @@ class TestDictJsonPathUnchanged:
         port_data = serializer.serialize_value(value={"rows": 10}, port_id="p", port_name="p")
         assert port_data.metadata["format"] == "json"
         assert port_data.WhichOneof("data") == "json_data"
+
+    def test_dict_round_trip_stays_dict(self, serializer):
+        port_data, out = _round_trip(serializer, {"rows": 10})
+        assert port_data.metadata["format"] == "json"
+        assert isinstance(out, dict)
+        assert out == {"rows": 10}
+        assert not isinstance(out, pd.DataFrame)
