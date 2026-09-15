@@ -134,7 +134,7 @@ print(result["output_data"])
 - 캔버스 UI / 포트 연결
 - 백엔드 등록 (`register` 는 별도 명령, [CI 가이드](../ci/README.md))
 - Secret Store 에 저장된 실제 값
-- gRPC 직렬화 경로 (`DataSerializer`, 3MB 제한, 공유 볼륨)
+- gRPC 직렬화 경로 (`DataSerializer`, 50MB 제한, 공유 볼륨)
 - `ctx.is_cancelled()` — 테스트 컨텍스트는 항상 `False`
 
 플랫폼에서 한 번 더 실행해야 위 항목을 확인할 수 있습니다.
