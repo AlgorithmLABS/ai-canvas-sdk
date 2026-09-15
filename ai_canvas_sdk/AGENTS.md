@@ -30,7 +30,7 @@ ai_canvas_sdk/
 - Public exports flow through `ai_canvas_sdk/__init__.py`; keep import names stable unless intentionally breaking SDK API.
 - `__version__` is imported from generated `ai_canvas_sdk/_version.py` and falls back to `0.0.0+unknown`.
 - `DataSerializer` uses pandas and pyarrow at runtime; changes here affect package import cost because it is re-exported at root.
-- DataFrame serialization thresholds are embedded constants: 10,000 rows for JSON, 100,000 rows large-data guard, 50 MiB gRPC size limit.
+- DataFrame serialization always uses Arrow + LZ4; `GRPC_SIZE_LIMIT` is 50 MiB. dict/scalar ports still use JSON Struct.
 - Generated files under `grpc/` use relative imports patched by `scripts/compile_protos.py`.
 
 ## ANTI-PATTERNS
