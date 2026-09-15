@@ -1,17 +1,102 @@
 """데이터 직렬화 유틸리티 - DataFrame ↔ PortData 변환."""
 from __future__ import annotations
 
+import base64
+import datetime as dt
 import logging
+import math
+from decimal import Decimal
 from typing import Any
 
+import numpy as np
 import pandas as pd
 import pyarrow as pa
 
 from ai_canvas_sdk.grpc import custom_node_service_pb2 as pb
 from google.protobuf import struct_pb2, any_pb2
-from google.protobuf.json_format import MessageToDict
 
 logger = logging.getLogger(__name__)
+
+
+def _sanitize_json_value(value: Any) -> Any:
+    """protobuf Struct 가 받을 수 있는 JSON 안전 타입으로 정규화합니다 (재귀).
+
+    Struct.update 는 None/bool/str/int/float/dict/list 만 받는다. pandas 의
+    datetime/timedelta/Decimal/bytes 와 비유한 float(NaN/Inf) 는 그 계약을
+    깨므로 인코드 전에 변환한다.
+    """
+    if value is None or value is pd.NA or value is pd.NaT:
+        return None
+    if isinstance(value, (np.bool_, bool)):
+        return bool(value)
+    if isinstance(value, (np.integer,)):
+        return int(value)
+    if isinstance(value, (float, np.floating)):
+        number = float(value)
+        return None if not math.isfinite(number) else number
+    if isinstance(value, Decimal):
+        return format(value, "f")
+    if isinstance(value, (bytes, bytearray, memoryview)):
+        raw = bytes(value)
+        try:
+            return raw.decode("utf-8")
+        except UnicodeDecodeError:
+            return base64.b64encode(raw).decode("ascii")
+    if isinstance(value, np.datetime64):
+        if np.isnat(value):
+            return None
+        return pd.Timestamp(value).isoformat()
+    if isinstance(value, pd.Timestamp):
+        if pd.isna(value):
+            return None
+        return value.isoformat()
+    if isinstance(value, dt.datetime):
+        return value.isoformat()
+    if isinstance(value, dt.date):
+        return value.isoformat()
+    if isinstance(value, np.timedelta64):
+        if np.isnat(value):
+            return None
+        return pd.Timedelta(value).total_seconds()
+    if isinstance(value, pd.Timedelta):
+        if pd.isna(value):
+            return None
+        return value.total_seconds()
+    if isinstance(value, dt.timedelta):
+        return value.total_seconds()
+    if isinstance(value, dict):
+        return {k: _sanitize_json_value(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_sanitize_json_value(v) for v in value]
+    return value
+
+
+def _proto_value_to_python(value: struct_pb2.Value) -> Any:
+    """google.protobuf.Value → Python 값 (NaN/Inf 허용).
+
+    json_format.MessageToDict 는 JSON 표준 준수를 위해 비유한 number_value 를
+    거부하므로, 구버전 sender 가 이미 NaN 을 담아 보낸 데이터도 읽을 수 있도록
+    Struct 를 직접 순회한다 (디코드 톨러런스).
+    """
+    kind = value.WhichOneof("kind")
+    if kind == "null_value":
+        return None
+    if kind == "number_value":
+        return value.number_value
+    if kind == "string_value":
+        return value.string_value
+    if kind == "bool_value":
+        return value.bool_value
+    if kind == "struct_value":
+        return _proto_struct_to_python(value.struct_value)
+    if kind == "list_value":
+        return [_proto_value_to_python(v) for v in value.list_value.values]
+    return None
+
+
+def _proto_struct_to_python(struct: struct_pb2.Struct) -> dict:
+    """google.protobuf.Struct → Python dict (NaN/Inf 허용, MessageToDict 대체)."""
+    return {key: _proto_value_to_python(struct.fields[key]) for key in struct.fields}
 
 
 class DataSerializer:
@@ -93,8 +178,7 @@ class DataSerializer:
         """
         logger.debug("Using JSON serialization")
 
-        # DataFrame을 dict로 변환
-        data_dict = df.to_dict(orient="records")
+        data_dict = _sanitize_json_value(df.to_dict(orient="records"))
 
         # dtype 정보 저장 (역직렬화 시 타입 복원용)
         dtypes = {col: str(dtype) for col, dtype in df.dtypes.items()}
@@ -190,23 +274,25 @@ class DataSerializer:
         json_struct = struct_pb2.Struct()
         port_data.json_data.Unpack(json_struct)
 
-        # Struct를 Python dict로 변환
-        json_dict = MessageToDict(json_struct)
+        json_dict = _proto_struct_to_python(json_struct)
 
         data_dict = json_dict.get("data", [])
         df = pd.DataFrame(data_dict)
 
-        # dtype 복원 시도 (선택적)
         dtypes = json_dict.get("dtypes", {})
         if dtypes:
             try:
                 for col, dtype_str in dtypes.items():
-                    if col in df.columns:
-                        # 기본 타입만 복원 (datetime 등은 자동 추론에 맡김)
-                        if dtype_str.startswith("int"):
-                            df[col] = df[col].astype("int64")
-                        elif dtype_str.startswith("float"):
-                            df[col] = df[col].astype("float64")
+                    if col not in df.columns:
+                        continue
+                    if dtype_str.startswith("int"):
+                        df[col] = df[col].astype("int64")
+                    elif dtype_str.startswith("float"):
+                        df[col] = df[col].astype("float64")
+                    elif dtype_str.startswith("datetime64"):
+                        df[col] = pd.to_datetime(df[col])
+                    elif "timedelta" in dtype_str:
+                        df[col] = pd.to_timedelta(df[col], unit="s")
             except Exception as e:
                 logger.warning(f"Failed to restore dtypes: {e}")
 
@@ -246,9 +332,8 @@ class DataSerializer:
         if isinstance(value, pd.DataFrame):
             return self.serialize(value, port_id, port_name)
         elif isinstance(value, dict):
-            # dict → JSON (Struct로 감싸서 Any에 Pack)
             json_struct = struct_pb2.Struct()
-            json_struct.update(value)
+            json_struct.update(_sanitize_json_value(value))
 
             json_any = any_pb2.Any()
             json_any.Pack(json_struct)
@@ -330,11 +415,10 @@ class DataSerializer:
             # bool
             return port_data.boolean_data
         elif port_data.WhichOneof("data") == "json_data":
-            # dict - Any에서 Struct로 Unpack
             try:
                 json_struct = struct_pb2.Struct()
                 port_data.json_data.Unpack(json_struct)
-                return MessageToDict(json_struct)
+                return _proto_struct_to_python(json_struct)
             except Exception as e:
                 logger.warning(f"Failed to unpack json_data: {e}")
                 return None

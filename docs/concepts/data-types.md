@@ -44,6 +44,7 @@ class PortTypeEnum(Enum):
 - `GRPC_SIZE_LIMIT = 3 * 1024 * 1024`
 
 대용량은 gRPC 바이트가 아니라 `file:///data/...` 경로로 넘기는 것이 플랫폼 설계입니다.
+JSON 경로(< 10,000 행)는 protobuf `Struct` 제약을 맞추기 위해 datetime/date 를 ISO 문자열로, timedelta 를 초 단위 숫자로, NaN/Inf 를 null 로 정규화합니다. Arrow 경로는 pandas 타입을 그대로 보존합니다.
 
 ## run() 에서 DataFrame 다루기
 
